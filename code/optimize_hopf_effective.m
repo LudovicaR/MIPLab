@@ -66,6 +66,7 @@ kk=1;
 insub=1;
 TSmax=1000;
 N=90;
+% tril: extract lower triangular part; 
 Isubdiag = find(tril(ones(N),-1));
 Tmaxtotal=0;
 for nsub=1:n_Subjects
@@ -195,6 +196,7 @@ for we=WE % loops over changing coupling constant G
     minm=100;
     Cnew=C;
     %% B1: Optimize - ANEC
+    % ANEC: Averaged Null Energy Condition 
     for iter=1:150 % iterations for the ANEC optimisation
         wC = we*Cnew; % multiplies SC with we(constant G)
         sumC = repmat(sum(wC,2),1,2); % for sum Cij*xj
