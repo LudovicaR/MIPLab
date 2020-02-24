@@ -144,8 +144,11 @@ for nsub=1:n_Subjects
     
     
     for seed=1:N
+        % demean: function of the project, removes the mean value 
+        % detrend: matlab tool, removes the best straight-line fit linear trend from the data
         x=detrend(demean(signaldata(seed,:))); % demeaning and detrending
         ts =zscore(filtfilt(bfilt2,afilt2,x));
+        % fft: compute the Discrete Fourier Transform 
         pw = abs(fft(ts));
         PowSpect(:,seed,insub) = pw(1:floor(TT/2)).^2/(TT/TR);
         ts2 =zscore(filtfilt(bfilt,afilt,x));
