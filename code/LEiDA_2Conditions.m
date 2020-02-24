@@ -65,7 +65,7 @@ Time_all=zeros(2, Tmaxtotal); % vector with subject nr and task at each t
 t_all=0; % Index of time (starts at 0 and will be updated until n_Sub*Tmax)
 
 % Bandpass filter settings
-fnq=1/(2*TR);                 % Nyquist frequency
+fnq=1/(2*TR);                 % Nyquist frequency (to avoid Aliasing)
 flp = 0.04;                    % lowpass frequency of filter (Hz)
 fhi = 0.07;                    % highpass
 Wn=[flp/fnq fhi/fnq];         % butterworth bandpass non-dimensional frequency
@@ -86,6 +86,7 @@ for s=1:n_Subjects
         % Get the BOLD phase using the Hilbert transform
         for seed=1:N_areas
             BOLD(seed,:)=BOLD(seed,:)-mean(BOLD(seed,:));
+            % filtfilt: Zero-phase forward and reverse digital IIR (infinite impulse response) filtering
             signal_filt =filtfilt(bfilt,afilt,BOLD(seed,:));
             Phase_BOLD(seed,:) = angle(hilbert(signal_filt));
         end
@@ -135,7 +136,7 @@ clear BOLD tc_aal signal_filt iFC VV V1 V2 Phase_BOLD
 
 disp('Clustering the eigenvectors into')
 % Leading_Eig is a matrix containing all the eigenvectors:
-% Collumns: N_areas are brain areas (variables)
+% Columns: N_areas are brain areas (variables)
 % Rows: Tmax*n_Subjects are all time points (independent observations)
 
 % Set maximum/minimum number of clusters
