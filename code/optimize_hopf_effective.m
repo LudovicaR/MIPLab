@@ -10,6 +10,32 @@
 % Deco, Gustavo, et al. "Awakening: Predicting external stimulation
 % to force transitions between different brain states." Proceedings 
 % of the National Academy of Sciences 116.36 (2019): 18088-18097.
+%
+% OUTPUTs: 
+% - optimizedhopfawake.mat: 
+% - WE: global coupling factor (G)
+% - PTRsimul: 
+%       output of LEiDA_fix_clusterAwakening.m, the Probability of transition
+% - Pstatessimul: 
+%       output of LEiDA_fix_clusterAwakening.m, the Probability states
+% - metastability: 
+%       the standard deviation of the sum of complex array composed of cos 
+%       and sin of the phase of BOLD signals.
+% - ksdist: the Kolmogorov-Smirnov distance statistic.
+% - klpstatessleep: symmetrized K-L distance between empirical and simulated in sleep state.
+% - klpstatesawake: symmetrized K-L distance between empirical and simulated in awake state.
+% - kldistsleep: symmetrized K-L for the transition state (sleep). 
+% - kldistawake: symmetrized K-L for the transition state (awake).
+% - entropydistawake: Markov Entropy for the awake state. 
+% - entropydistsleep: Markov Entropy for the sleep state. 
+% - fitt: 
+%       correlation coefficient between empirical and simulated Functional Connectivites (FC)
+% - Coptim: 
+%       effective connectivity for the global coupling factor, derived from 
+%       the structural connectivity 90x90 matrix.
+% - n_Subjects: the number of subjects. 
+% - f_diff: the intrinsic frequency for each region
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% 
@@ -316,6 +342,9 @@ for we=WE % loops over changing coupling constant G
 
     T=10:Tmax-10;
     for t=T
+        % ku = sum of all elements in complex array, the cos and sin of
+        % BOLD phases, divided by the number of signals; 
+        % similar to an average
         ku=sum(complex(cos(Phase_BOLD(:,t)),sin(Phase_BOLD(:,t))))/N;
         sync(t-9)=abs(ku);
         for i=1:N
@@ -325,6 +354,8 @@ for we=WE % loops over changing coupling constant G
         end
         pattern(t-9,:)=patt(Isubdiag);
     end
+    % Metastability: the quality of systems to temporarily persist in an 
+    % existing equilibrium despite slight perturbations.
     metastability(iwe)=abs(metastabilitydata-std(sync));
     %% B2f: DYNAMIC FUNCTIONAL CONNECTIVITY (DFC)
 
@@ -339,6 +370,15 @@ for we=WE % loops over changing coupling constant G
         end
     end
     
+    % kstest2: two-sample Kolmogorov-Smirnov goodness-of-fit hypothesis
+    % test. It determines if independent random samples (inputs) are drawn 
+    % from the same underlying continuous population. 
+    % H is the result of the hypothesis test (=0 or =1 for rejection).
+    % 'ksdist' is the KS test statistic defined according to the TAIL.
+    % The test statistic is equal to max|S1(x) - S2(x)| for TAIL='unequal', 
+    % max[S1(x) - S2(x)] for TAIL='larger', and max[S2(x) - S1(x)] for 
+    % TAIL='smaller'.
+    % P is the P-value, compared to the significance level of 5%.
     [H,P,ksdist(iwe)]=kstest2(phfcd,phfcddata);
     
                           %%%%%%%%%%%%  C: COMPARISON %%%%%%%%%%%%

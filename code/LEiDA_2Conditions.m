@@ -7,6 +7,17 @@
 % Edited by
 % Jakub Vohryzek February 2020
 %
+% OUTPUTs:
+% - empiricalLEiDA.mat: 
+% - Vemp: centroid of the best of K clusters.
+% - P1emp: probability of occurrence of state 1
+% - P2emp: probability of occurrence of state 2
+% - LT1emp: state 1 duration on average 
+% - LT2emp: state 2 duration on average 
+% - PTR1emp: probability of transition to state 1
+% - PTR2emp: probability of transition to state 2
+% - Number_Clusters: the number of clusters used for K-means
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clear all;
