@@ -27,6 +27,8 @@ we=0.09;
 ITER=30;
 N=90;
 a=zeros(N,2);
+% Coptim: from optimize_hopf_effective, it is the Effective Connectivity
+% for the Global Coupling Factor (WE)
 C=squeeze(Coptim(find(abs(WE-we)<0.0001),:,:));
 
 TSmax=1000;

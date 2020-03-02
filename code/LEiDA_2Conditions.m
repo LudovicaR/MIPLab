@@ -224,7 +224,7 @@ for k=1:length(rangeK)
         stats=permutation_htest2_np([a,b],[ones(1,numel(a)) 2*ones(1,numel(b))],1000,0.05,'ttest');
         P_pval(k,c)=min(stats.pvals);
         
-        % Comapre Lifetimes
+        % Compare Lifetimes
         a=squeeze(LT(1,:,k,c));  % Vector containing Prob of c in Baselineline
         b=squeeze(LT(2,:,k,c));  % Vector containing Prob of c in Task
         stats=permutation_htest2_np([a,b],[ones(1,numel(a)) 2*ones(1,numel(b))],1000,0.05,'ttest');

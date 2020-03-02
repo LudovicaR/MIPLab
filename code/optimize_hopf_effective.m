@@ -22,6 +22,10 @@ P1emp=mean(P1emp);
 P2emp=mean(P2emp);
 
 %% Load Structural Connectivity
+% The structural connectivity matrix is obtained using diffusion MRI and
+% tractography. 
+% 90: number of coupled dynamical units equal to the number of cortical and 
+% subcortical areas from the AAL (atlas) parcellation.
 load sc90.mat;
 C=sc90;
 C=C/max(max(C))*0.2;
@@ -62,6 +66,7 @@ n_Subjects=size(X,2);
     %%%%%%%%%%%%%%% A: EXPERIMENTAL %%%%%%%%%%%%
 %%
 % Extracting FC FCD and metastability of data
+% FCD: Functional Connectivity Dynamics 
 kk=1;
 insub=1;
 TSmax=1000;
@@ -243,8 +248,9 @@ for we=WE % loops over changing coupling constant G
         end
         FCphases=squeeze(mean(iFC));
         
-        %% B1e: COMPUTE: ANEC
-        % Update Effective Connectivity Matrix Cnew
+        %% B1e: COMPUTE: ANEC (Averaged Null Energy Condition)
+        % Update Effective Connectivity (EC) Matrix Cnew
+        % EC: effectiveness of synaptic connections between brain regions 
         for i=1:N
             for j=i+1:N
                 if (C(i,j)>0 || j==N-i+1)
@@ -266,7 +272,7 @@ for we=WE % loops over changing coupling constant G
         end
         
     end 
-    Coptim(iwe,:,:)=Cnew;  %% Effective Connectivity for G (we)
+    Coptim(iwe,:,:)=Cnew;  %% Effective Connectivity for G (Global Coupling Factor) (we)
 
     %% B2: FINAL SIMULATION
     

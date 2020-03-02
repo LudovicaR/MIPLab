@@ -1,4 +1,6 @@
 function H = EntropyMarkov(P1,P2)
+% compute the entropy rate for a Markov chain. 
+% used to compare the empirical and simulated transition probabilities. 
 
 %%% FOR P1
 numberStates=size(P1,1);

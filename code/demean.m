@@ -20,4 +20,6 @@ dimsize = size(x,dim);
 dimrep = ones(1,length(dims));
 dimrep(dim) = dimsize;
 
+% repmat: replicates the array, according to the number 'dimrep' given, 
+% in both dimensions, creating a matrix.
 x = x - repmat(mean(x,dim),dimrep);
