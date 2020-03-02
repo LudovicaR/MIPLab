@@ -8,7 +8,7 @@
 % Jakub Vohryzek February 2020
 %
 % OUTPUTs:
-% - empiricalLEiDA.mat: a mat file with all the outputs listed below. 
+% - empiricalLEiDA.mat: mat file with all the outputs listed below. 
 % - Vemp: centroid of the best of K clusters.
 % - P1emp: probability of occurrence of state 1
 % - P2emp: probability of occurrence of state 2

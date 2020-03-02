@@ -12,7 +12,7 @@
 % of the National Academy of Sciences 116.36 (2019): 18088-18097.
 %
 % OUTPUTs: 
-% - optimizedhopfawake.mat: at mat file with all the outputs listed below.
+% - optimizedhopfawake.mat: mat file with all the outputs listed below.
 % - WE: global coupling factor (G)
 % - PTRsimul: 
 %       output of LEiDA_fix_clusterAwakening.m, the Probability of transition
