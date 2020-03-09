@@ -69,6 +69,12 @@ end
 
 % Parameters of the data
 TR=2.08;  % Repetition Time (seconds)
+% TR is the time between successive radio frequency (RF) pulses. 
+% A long repetition time allows the protons in all of the tissues to relax 
+% back into alignment with the main magnetic field. A short repetition time 
+% will result in the protons from some tissues not having fully relaxed 
+% back into alignment before the next measurement is made decreasing the 
+% signal from this tissue.
 
 % Preallocate variables to save FC patterns and associated information
 Leading_Eig=zeros(Tmaxtotal,2*N_areas); % All leading eigenvectors
@@ -77,8 +83,8 @@ t_all=0; % Index of time (starts at 0 and will be updated until n_Sub*Tmax)
 
 % Bandpass filter settings
 fnq=1/(2*TR);                 % Nyquist frequency (to avoid Aliasing)
-flp = 0.04;                    % lowpass frequency of filter (Hz)
-fhi = 0.07;                    % highpass
+flp = 0.04;                   % lowpass frequency of filter (Hz)
+fhi = 0.07;                   % highpass
 Wn=[flp/fnq fhi/fnq];         % butterworth bandpass non-dimensional frequency
 k=2;                          % 2nd order butterworth filter
 [bfilt,afilt]=butter(k,Wn);   % construct the filter
