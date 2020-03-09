@@ -101,10 +101,13 @@ for s=1:n_Subjects
         Phase_BOLD=zeros(N_areas,Tmax);
         
         % Get the BOLD phase using the Hilbert transform
-        for seed=1:N_areas
+        for seed=1:N_areas  %seed: each node, each area
             BOLD(seed,:)=BOLD(seed,:)-mean(BOLD(seed,:));
             % filtfilt: Zero-phase forward and reverse digital IIR (infinite impulse response) filtering
+            % Apply a High-pass filter 
             signal_filt =filtfilt(bfilt,afilt,BOLD(seed,:));
+            % return the phase (angle) of the hilber transform of the
+            % filtered signal (BOLD in that node)
             Phase_BOLD(seed,:) = angle(hilbert(signal_filt));
         end
         
@@ -114,6 +117,8 @@ for s=1:n_Subjects
             iFC=zeros(N_areas);
             for n=1:N_areas
                 for p=1:N_areas
+                    % phase coherence between each n and p pair of nodes at 
+                    % time t (= cosine of the phase difference)
                     iFC(n,p)=cos(Phase_BOLD(n,t)-Phase_BOLD(p,t));
                 end
             end
