@@ -10,6 +10,32 @@
 % Deco, Gustavo, et al. "Awakening: Predicting external stimulation
 % to force transitions between different brain states." Proceedings 
 % of the National Academy of Sciences 116.36 (2019): 18088-18097.
+%
+% OUTPUTs: 
+% - optimizedhopfawake.mat: mat file with all the outputs listed below.
+% - WE: global coupling factor (G)
+% - PTRsimul: 
+%       output of LEiDA_fix_clusterAwakening.m, the Probability of transition
+% - Pstatessimul: 
+%       output of LEiDA_fix_clusterAwakening.m, the Probability states
+% - metastability: 
+%       the standard deviation of the sum of complex array composed of cos 
+%       and sin of the phase of BOLD signals.
+% - ksdist: the Kolmogorov-Smirnov distance statistic.
+% - klpstatessleep: symmetrized K-L distance between empirical and simulated in sleep state.
+% - klpstatesawake: symmetrized K-L distance between empirical and simulated in awake state.
+% - kldistsleep: symmetrized K-L for the transition state (sleep). 
+% - kldistawake: symmetrized K-L for the transition state (awake).
+% - entropydistawake: Markov Entropy for the awake state. 
+% - entropydistsleep: Markov Entropy for the sleep state. 
+% - fitt: 
+%       correlation coefficient between empirical and simulated Functional Connectivites (FC)
+% - Coptim: 
+%       effective connectivity for the global coupling factor, derived from 
+%       the structural connectivity 90x90 matrix.
+% - n_Subjects: the number of subjects. 
+% - f_diff: the intrinsic frequency for each region
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% 
@@ -22,6 +48,10 @@ P1emp=mean(P1emp);
 P2emp=mean(P2emp);
 
 %% Load Structural Connectivity
+% The structural connectivity matrix is obtained using diffusion MRI and
+% tractography. 
+% 90: number of coupled dynamical units equal to the number of cortical and 
+% subcortical areas from the AAL (atlas) parcellation.
 load sc90.mat;
 C=sc90;
 C=C/max(max(C))*0.2;
@@ -62,10 +92,12 @@ n_Subjects=size(X,2);
     %%%%%%%%%%%%%%% A: EXPERIMENTAL %%%%%%%%%%%%
 %%
 % Extracting FC FCD and metastability of data
+% FCD: Functional Connectivity Dynamics 
 kk=1;
 insub=1;
 TSmax=1000;
 N=90;
+% tril: extract lower triangular part; 
 Isubdiag = find(tril(ones(N),-1));
 Tmaxtotal=0;
 for nsub=1:n_Subjects
@@ -143,8 +175,11 @@ for nsub=1:n_Subjects
     
     
     for seed=1:N
+        % demean: function of the project, removes the mean value 
+        % detrend: matlab tool, removes the best straight-line fit linear trend from the data
         x=detrend(demean(signaldata(seed,:))); % demeaning and detrending
         ts =zscore(filtfilt(bfilt2,afilt2,x));
+        % fft: compute the Discrete Fourier Transform 
         pw = abs(fft(ts));
         PowSpect(:,seed,insub) = pw(1:floor(TT/2)).^2/(TT/TR);
         ts2 =zscore(filtfilt(bfilt,afilt,x));
@@ -195,6 +230,7 @@ for we=WE % loops over changing coupling constant G
     minm=100;
     Cnew=C;
     %% B1: Optimize - ANEC
+    % ANEC: Averaged Null Energy Condition 
     for iter=1:150 % iterations for the ANEC optimisation
         wC = we*Cnew; % multiplies SC with we(constant G)
         sumC = repmat(sum(wC,2),1,2); % for sum Cij*xj
@@ -238,8 +274,9 @@ for we=WE % loops over changing coupling constant G
         end
         FCphases=squeeze(mean(iFC));
         
-        %% B1e: COMPUTE: ANEC
-        % Update Effective Connectivity Matrix Cnew
+        %% B1e: COMPUTE: ANEC (Averaged Null Energy Condition)
+        % Update Effective Connectivity (EC) Matrix Cnew
+        % EC: effectiveness of synaptic connections between brain regions 
         for i=1:N
             for j=i+1:N
                 if (C(i,j)>0 || j==N-i+1)
@@ -261,7 +298,7 @@ for we=WE % loops over changing coupling constant G
         end
         
     end 
-    Coptim(iwe,:,:)=Cnew;  %% Effective Connectivity for G (we)
+    Coptim(iwe,:,:)=Cnew;  %% Effective Connectivity for G (Global Coupling Factor) (we)
 
     %% B2: FINAL SIMULATION
     
@@ -305,6 +342,9 @@ for we=WE % loops over changing coupling constant G
 
     T=10:Tmax-10;
     for t=T
+        % ku = sum of all elements in complex array, the cos and sin of
+        % BOLD phases, divided by the number of signals; 
+        % similar to an average
         ku=sum(complex(cos(Phase_BOLD(:,t)),sin(Phase_BOLD(:,t))))/N;
         sync(t-9)=abs(ku);
         for i=1:N
@@ -314,6 +354,8 @@ for we=WE % loops over changing coupling constant G
         end
         pattern(t-9,:)=patt(Isubdiag);
     end
+    % Metastability: the quality of systems to temporarily persist in an 
+    % existing equilibrium despite slight perturbations.
     metastability(iwe)=abs(metastabilitydata-std(sync));
     %% B2f: DYNAMIC FUNCTIONAL CONNECTIVITY (DFC)
 
@@ -328,6 +370,15 @@ for we=WE % loops over changing coupling constant G
         end
     end
     
+    % kstest2: two-sample Kolmogorov-Smirnov goodness-of-fit hypothesis
+    % test. It determines if independent random samples (inputs) are drawn 
+    % from the same underlying continuous population. 
+    % H is the result of the hypothesis test (=0 or =1 for rejection).
+    % 'ksdist' is the KS test statistic defined according to the TAIL.
+    % The test statistic is equal to max|S1(x) - S2(x)| for TAIL='unequal', 
+    % max[S1(x) - S2(x)] for TAIL='larger', and max[S2(x) - S1(x)] for 
+    % TAIL='smaller'.
+    % P is the P-value, compared to the significance level of 5%.
     [H,P,ksdist(iwe)]=kstest2(phfcd,phfcddata);
     
                           %%%%%%%%%%%%  C: COMPARISON %%%%%%%%%%%%

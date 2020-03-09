@@ -27,6 +27,8 @@ we=0.09;
 ITER=30;
 N=90;
 a=zeros(N,2);
+% Coptim: from optimize_hopf_effective, it is the Effective Connectivity
+% for the Global Coupling Factor (WE)
 C=squeeze(Coptim(find(abs(WE-we)<0.0001),:,:));
 
 TSmax=1000;
@@ -51,7 +53,7 @@ for node=1:N/2
     iwe=1;
     %% A1: PERTURBING
     for perturb=PERTURB
-        a=zeros(N,2);
+        a=zeros(N,2); % a will be the parameter used to add a perturbation to the Hopf model
         a(node,:)=a(node,:)+perturb;
         a(N+1-node,:)=a(N+1-node,:)+perturb;
         for iter=1:ITER

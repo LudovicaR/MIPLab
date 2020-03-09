@@ -7,6 +7,17 @@
 % Edited by
 % Jakub Vohryzek February 2020
 %
+% OUTPUTs:
+% - empiricalLEiDA.mat: mat file with all the outputs listed below. 
+% - Vemp: centroid of the best of K clusters.
+% - P1emp: probability of occurrence of state 1
+% - P2emp: probability of occurrence of state 2
+% - LT1emp: state 1 duration on average 
+% - LT2emp: state 2 duration on average 
+% - PTR1emp: probability of transition to state 1
+% - PTR2emp: probability of transition to state 2
+% - Number_Clusters: the number of clusters used for K-means
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clear all;
@@ -58,6 +69,12 @@ end
 
 % Parameters of the data
 TR=2.08;  % Repetition Time (seconds)
+% TR is the time between successive radio frequency (RF) pulses. 
+% A long repetition time allows the protons in all of the tissues to relax 
+% back into alignment with the main magnetic field. A short repetition time 
+% will result in the protons from some tissues not having fully relaxed 
+% back into alignment before the next measurement is made decreasing the 
+% signal from this tissue.
 
 % Preallocate variables to save FC patterns and associated information
 Leading_Eig=zeros(Tmaxtotal,2*N_areas); % All leading eigenvectors
@@ -65,9 +82,9 @@ Time_all=zeros(2, Tmaxtotal); % vector with subject nr and task at each t
 t_all=0; % Index of time (starts at 0 and will be updated until n_Sub*Tmax)
 
 % Bandpass filter settings
-fnq=1/(2*TR);                 % Nyquist frequency
-flp = 0.04;                    % lowpass frequency of filter (Hz)
-fhi = 0.07;                    % highpass
+fnq=1/(2*TR);                 % Nyquist frequency (to avoid Aliasing)
+flp = 0.04;                   % lowpass frequency of filter (Hz)
+fhi = 0.07;                   % highpass
 Wn=[flp/fnq fhi/fnq];         % butterworth bandpass non-dimensional frequency
 k=2;                          % 2nd order butterworth filter
 [bfilt,afilt]=butter(k,Wn);   % construct the filter
@@ -84,9 +101,13 @@ for s=1:n_Subjects
         Phase_BOLD=zeros(N_areas,Tmax);
         
         % Get the BOLD phase using the Hilbert transform
-        for seed=1:N_areas
+        for seed=1:N_areas  %seed: each node, each area
             BOLD(seed,:)=BOLD(seed,:)-mean(BOLD(seed,:));
+            % filtfilt: Zero-phase forward and reverse digital IIR (infinite impulse response) filtering
+            % Apply a High-pass filter 
             signal_filt =filtfilt(bfilt,afilt,BOLD(seed,:));
+            % return the phase (angle) of the hilber transform of the
+            % filtered signal (BOLD in that node)
             Phase_BOLD(seed,:) = angle(hilbert(signal_filt));
         end
         
@@ -96,13 +117,17 @@ for s=1:n_Subjects
             iFC=zeros(N_areas);
             for n=1:N_areas
                 for p=1:N_areas
+                    % phase coherence between each n and p pair of nodes at 
+                    % time t (= cosine of the phase difference)
                     iFC(n,p)=cos(Phase_BOLD(n,t)-Phase_BOLD(p,t));
                 end
             end
             
-            % Get the leading eigenvector
- %           [V1 ~]=eigs(iFC,1);
+            % The resulting iFC is a 3D matrix with size NxNxT 
+            % (N=90 areas, T=nb of points, changes per subject)
             
+            % Get the leading eigenvector
+            % [V1 ~]=eigs(iFC,1);
             [VV DD]=eigs(iFC,2);
             d1=DD(1,1)/sum(diag(DD));
             d2=DD(2,2)/sum(diag(DD));
@@ -135,7 +160,7 @@ clear BOLD tc_aal signal_filt iFC VV V1 V2 Phase_BOLD
 
 disp('Clustering the eigenvectors into')
 % Leading_Eig is a matrix containing all the eigenvectors:
-% Collumns: N_areas are brain areas (variables)
+% Columns: N_areas are brain areas (variables)
 % Rows: Tmax*n_Subjects are all time points (independent observations)
 
 % Set maximum/minimum number of clusters
@@ -155,6 +180,7 @@ for k=1:length(rangeK)
     Kmeans_results{k}.C=C;       % Cluster centroids (FC patterns)
     Kmeans_results{k}.SUMD=SUMD; % Within-cluster sums of point-to-centroid distances
     Kmeans_results{k}.D=D;       % Distance from each point to every centroid
+    % returns the silhouette values of the clustered data
     ss=silhouette(Leading_Eig,IDX);
     sil(k)=mean(ss);
 end
@@ -223,7 +249,7 @@ for k=1:length(rangeK)
         stats=permutation_htest2_np([a,b],[ones(1,numel(a)) 2*ones(1,numel(b))],1000,0.05,'ttest');
         P_pval(k,c)=min(stats.pvals);
         
-        % Comapre Lifetimes
+        % Compare Lifetimes
         a=squeeze(LT(1,:,k,c));  % Vector containing Prob of c in Baselineline
         b=squeeze(LT(2,:,k,c));  % Vector containing Prob of c in Task
         stats=permutation_htest2_np([a,b],[ones(1,numel(a)) 2*ones(1,numel(b))],1000,0.05,'ttest');
