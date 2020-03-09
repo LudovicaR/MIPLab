@@ -123,9 +123,11 @@ for s=1:n_Subjects
                 end
             end
             
-            % Get the leading eigenvector
- %           [V1 ~]=eigs(iFC,1);
+            % The resulting iFC is a 3D matrix with size NxNxT 
+            % (N=90 areas, T=nb of points, changes per subject)
             
+            % Get the leading eigenvector
+            % [V1 ~]=eigs(iFC,1);
             [VV DD]=eigs(iFC,2);
             d1=DD(1,1)/sum(diag(DD));
             d2=DD(2,2)/sum(diag(DD));
@@ -178,6 +180,7 @@ for k=1:length(rangeK)
     Kmeans_results{k}.C=C;       % Cluster centroids (FC patterns)
     Kmeans_results{k}.SUMD=SUMD; % Within-cluster sums of point-to-centroid distances
     Kmeans_results{k}.D=D;       % Distance from each point to every centroid
+    % returns the silhouette values of the clustered data
     ss=silhouette(Leading_Eig,IDX);
     sil(k)=mean(ss);
 end
