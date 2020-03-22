@@ -68,13 +68,13 @@ NumClusters=Number_Clusters;
 delt = TR;            % sampling interval
 k=2;                  % 2nd order butterworth filter
 fnq=1/(2*delt);
-flp = .04;           % lowpass frequency of filter
-fhi = fnq-0.001;           % highpass
+flp = .04;            % lowpass frequency of filter
+fhi = fnq-0.001;      % highpass
 Wn=[flp/fnq fhi/fnq]; % butterworth bandpass non-dimensional frequency
 [bfilt,afilt]=butter(k,Wn);   % construct the filter
 
-flp = .04;           % lowpass frequency of filter
-fhi = .07;           % highpass
+flp = .04;            % lowpass frequency of filter
+fhi = .07;            % highpass
 Wn=[flp/fnq fhi/fnq]; % butterworth bandpass non-dimensional frequency
 [bfilt2,afilt2]=butter(k,Wn);   % construct the filter
 clear fnq flp fhi Wn k

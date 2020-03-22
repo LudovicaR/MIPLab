@@ -1,19 +1,19 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % LEADING EIGENVECTOR DYNAMICS ANALYSIS
-%
+% 
 % Written by 
 % Gustavo Deco
 % Edited by
 % Jakub Vohryzek February 2020
-%
+% 
 % OUTPUTs:
 % - empiricalLEiDA.mat: mat file with all the outputs listed below. 
 % - Vemp: centroid of the best of K clusters.
 % - P1emp: probability of occurrence of state 1
 % - P2emp: probability of occurrence of state 2
-% - LT1emp: state 1 duration on average 
-% - LT2emp: state 2 duration on average 
+% - LT1emp: state 1 duration (lifetime) on average 
+% - LT2emp: state 2 duration (lifetime) on average 
 % - PTR1emp: probability of transition to state 1
 % - PTR2emp: probability of transition to state 2
 % - Number_Clusters: the number of clusters used for K-means
@@ -21,6 +21,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clear all;
+
+% TO CHANGE BASED ON DATASET
 TSmax=240;
 NSUB=18;
 
@@ -61,6 +63,8 @@ Tmaxtotal=0;
 for s=1:n_Subjects
     for task=1:n_Task
         [N_areas, Tmax0]=size(tc_aal{s,task});
+        % the number of time points considered is either 1000, 
+        % or the number of timepoints taken for that subject 
         Tmax=min(TSmax,Tmax0);
         Tmaxtotal=Tmaxtotal+Tmax;
     end
@@ -68,13 +72,10 @@ end
 
 
 % Parameters of the data
+
+% TO CHANGE based on the machine used for the data acquisition
 TR=2.08;  % Repetition Time (seconds)
 % TR is the time between successive radio frequency (RF) pulses. 
-% A long repetition time allows the protons in all of the tissues to relax 
-% back into alignment with the main magnetic field. A short repetition time 
-% will result in the protons from some tissues not having fully relaxed 
-% back into alignment before the next measurement is made decreasing the 
-% signal from this tissue.
 
 % Preallocate variables to save FC patterns and associated information
 Leading_Eig=zeros(Tmaxtotal,2*N_areas); % All leading eigenvectors
@@ -258,7 +259,7 @@ for k=1:length(rangeK)
 end
 disp('%%%%% LEiDA SUCCESSFULLY COMPLETED %%%%%%%')
 
-%% 4 - Choosing FC patterns and stastistics between groups
+%% 4 - Choosing FC patterns and statistics between groups
 
 
 disp(['Choose number of clusters between ' num2str(rangeK(1)) ' and ' num2str(rangeK(end)) ])

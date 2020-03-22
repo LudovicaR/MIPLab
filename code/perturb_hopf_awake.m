@@ -64,6 +64,7 @@ for node=1:N/2
             for t=0:dt:3000
                 suma = wC*z - sumC.*z; % sum(Cij*xi) - sum(Cij)*xj
                 zz = z(:,end:-1:1); % flipped z, because (x.*x + y.*y)
+                % Super-critical Hopf bifurcation equation
                 z = z + dt*(a.*z + zz.*omega - z.*(z.*z+zz.*zz) + suma) + dsig*randn(N,2);
             end
             %% A3: MODELLING
@@ -71,6 +72,7 @@ for node=1:N/2
             for t=0:dt:((Tmax-1)*TR)
                 suma = wC*z - sumC.*z; % sum(Cij*xi) - sum(Cij)*xj
                 zz = z(:,end:-1:1); % flipped z, because (x.*x + y.*y)
+                % Super-critical Hopf bifurcation equation
                 z = z + dt*(a.*z + zz.*omega - z.*(z.*z+zz.*zz) + suma) + dsig*randn(N,2);
                 if abs(mod(t,TR))<0.01
                     nn=nn+1;
@@ -80,7 +82,10 @@ for node=1:N/2
             %% A4: COMPARISON
             %%%% KL dist between PTR2emp
             
+            % apply LEiDA to the simulated data
             [PTRsim,Pstates]=LEiDA_fix_clusterAwakening(xs',NumClusters,Vemp,TR);
+            
+            % compute the KL distance between simulated and extracted states
             KLps_p(iter)=0.5*(sum(Pstates.*log(Pstates./P2emp))+sum(P2emp.*log(P2emp./Pstates)));
         end
         KLpstatessleep_perturbed(node,iwe)=mean(KLps_p)
