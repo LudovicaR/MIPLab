@@ -7,28 +7,38 @@
 % Edited by
 % Jakub Vohryzek February 2020
 % Giulia Preti March 2020 - adaptation for AgCC analysis: 2 groups
-%
+% Ludovica Romanin March 2020 - remove small areas giving timecourses=0
+% 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clear all;
 
 %load data matrices for the two groups
-load AgCC_TCS.mat
+load AgCC_TCS_new.mat
 load Controls_TCS.mat
 
+%%
+
 %parameters
-N_areas=80
+N_areas=80;
 TP=200;
 NSUB_Controls=size(Controls_TCS,3);
 NSUB_AgCC=size(AgCC_TCS,3);
-
 %create unique variable with 2 groups concatenated
-All_Subjs_TCS=zeros(80,200,NSUB_Controls+NSUB_AgCC);
+All_Subjs_TCS=zeros(N_areas,TP,NSUB_Controls+NSUB_AgCC);
 All_Subjs_TCS(:,:,1:NSUB_AgCC)=AgCC_TCS;%from 1 to 16
 All_Subjs_TCS(:,:,NSUB_AgCC+1:NSUB_AgCC+NSUB_Controls)=Controls_TCS;%from 17 to 44
 NSUB=size(All_Subjs_TCS,3);
 Ttotal=TP*NSUB;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Preprocessing - Remove areas with timecourses at zero
+ 
+load areas_zero.mat
+
+All_Subjs_TCS(areas_zero,:,:) = [];
+
+N_areas = size(All_Subjs_TCS,1);
 
 %% 1 - Compute the Leading Eigenvectors from the BOLD datasets
 disp('Processing the eigenvectors from BOLD data')
@@ -54,7 +64,6 @@ k=2;                          % 2nd order butterworth filter
 [bfilt,afilt]=butter(k,Wn);   % construct the filter
 clear fnq flp fhi Wn k
 
-
 for s=1:NSUB
     % Get the BOLD signals from this subject in this task
     BOLD = All_Subjs_TCS(:,:,s);
@@ -67,7 +76,7 @@ for s=1:NSUB
         Phase_BOLD(seed,:) = angle(hilbert(signal_filt));
     end
     
-    for t=1:T
+    for t=1:TP
         
         %Calculate the Instantaneous FC (BOLD Phase Synchrony)
         iFC=zeros(N_areas);
@@ -126,11 +135,11 @@ Kmeans_results=cell(size(rangeK));
 for k=1:length(rangeK)
     disp(['- ' num2str(rangeK(k)) ' clusters'])
     [IDX, C, SUMD, D]=kmeans(Leading_Eig,rangeK(k),'Replicates',10,'MaxIter',1000,'Display','off');
-    Kmeans_results{k}.IDX=IDX;   % Cluster time course - numeric collumn vectos
+    Kmeans_results{k}.IDX=IDX;   % Cluster time course - numeric column vectors
     Kmeans_results{k}.C=C;       % Cluster centroids (FC patterns)
     Kmeans_results{k}.SUMD=SUMD; % Within-cluster sums of point-to-centroid distances
     Kmeans_results{k}.D=D;       % Distance from each point to every centroid
-    ss=silhouette(Leading_Eig,IDX);
+    [ss,H]=silhouette(Leading_Eig,IDX);
     sil(k)=mean(ss);
 end
 
@@ -339,13 +348,13 @@ colormap(jet)
 
 for c=1:K
     subplot(5,K,c)
-    % This needs function plot_nodes_in_cortex.m and aal_cog.m
+    % This needs function plot_nodes_in_cortex.m and aal_cog.txt
     plot_nodes_in_cortex(V(c,1:N_areas))
     subplot(5,K,K+c)
-    plot_nodes_in_cortex(V(c,N_areas+1:2*N_areas))
+    plot_nodes_in_cortex(V(c,N_areas:N_areas))
     title({['State #' num2str(c)]})
     subplot(5,K,2*K+c)
-    FC_V=V(c,1:N_areas)'*V(c,1:N_areas)+V(c,N_areas+1:2*N_areas)'*V(c,N_areas+1:2*N_areas);
+    FC_V=V(c,1:N_areas)'*V(c,1:N_areas)+V(c,N_areas:N_areas)'*V(c,N_areas:N_areas);
     li=max(abs(FC_V(:)));
     imagesc(FC_V,[-li li])
     axis square
@@ -353,34 +362,34 @@ for c=1:K
     ylabel('Brain area #')
     xlabel('Brain area #')
     
-    subplot(5,K,3*K+c)
-    Group1=squeeze(P(1:NSUB_AgCC,k,ind_sort(c)));
-    Group2=squeeze(P(NSUB_AgCC+1:NSUB_AgCC+NSUB_Controls,k,ind_sort(c)));
-    bar([mean(Group1) mean(Group2)],'EdgeColor','w','FaceColor',[.5 .5 .5])
-    hold on
-    % Error bar containing the standard error of the mean
-    errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
-    set(gca,'XTickLabel',{'Rest', 'Task'})
-    if P_pval(k,ind_sort(c))<0.05
-        plot(1.5,max([mean(Rest) mean(Task)])+.01,'*k')
-    end
-    if c==1
-        ylabel('Probability')
-    end
-    box off
-    
-    subplot(5,K,4*K+c)
-    Rest=squeeze(LT(1,:,k,ind_sort(c)));
-    Task=squeeze(LT(2,:,k,ind_sort(c)));
-    bar([mean(Rest) mean(Task)],'EdgeColor','w','FaceColor',[.5 .5 .5])
-    hold on
-    errorbar([mean(Rest) mean(Task)],[std(Rest)/sqrt(numel(Rest)) std(Task)/sqrt(numel(Task))],'LineStyle','none','Color','k')
-    set(gca,'XTickLabel',{'Group1: AgCC', 'Group2 : Controls'})
-    if LT_pval(k,ind_sort(c))<0.05
-        plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
-    end
-    if c==1
-        ylabel('Lifetime (seconds)')
-    end
-    box off
+%     subplot(5,K,3*K+c)
+%     Group1=squeeze(P(1:NSUB_AgCC,k,ind_sort(c)));
+%     Group2=squeeze(P(NSUB_AgCC+1:NSUB_AgCC+NSUB_Controls,k,ind_sort(c)));
+%     bar([mean(Group1) mean(Group2)],'EdgeColor','w','FaceColor',[.5 .5 .5])
+%     hold on
+%     % Error bar containing the standard error of the mean
+%     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
+%     set(gca,'XTickLabel',{'Rest', 'Task'})
+%     if P_pval(k,ind_sort(c))<0.05
+%         plot(1.5,max([mean(Rest) mean(Task)])+.01,'*k')
+%     end
+%     if c==1
+%         ylabel('Probability')
+%     end
+%     box off
+%     
+%     subplot(5,K,4*K+c)
+%     Rest=squeeze(LT(1,:,k,ind_sort(c)));
+%     Task=squeeze(LT(2,:,k,ind_sort(c)));
+%     bar([mean(Rest) mean(Task)],'EdgeColor','w','FaceColor',[.5 .5 .5])
+%     hold on
+%     errorbar([mean(Rest) mean(Task)],[std(Rest)/sqrt(numel(Rest)) std(Task)/sqrt(numel(Task))],'LineStyle','none','Color','k')
+%     set(gca,'XTickLabel',{'Group1: AgCC', 'Group2 : Controls'})
+%     if LT_pval(k,ind_sort(c))<0.05
+%         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
+%     end
+%     if c==1
+%         ylabel('Lifetime (seconds)')
+%     end
+%     box off
 end

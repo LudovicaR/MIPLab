@@ -5,7 +5,8 @@ hold on
 
 % % PLOT CORTEX
 % 
-cortex.path='/Users/jakub/Matlab/Collaboration_Cabral/LEiDA/LEiDA-Vohryzek_PSILODEP/Functions/MNI152_T1_2mm_brain_mask.nii';
+%cortex.path='/Users/jakub/Matlab/Collaboration_Cabral/LEiDA/LEiDA-Vohryzek_PSILODEP/Functions/MNI152_T1_2mm_brain_mask.nii';
+cortex.path='./dbs80symm_2mm.nii';
 cortex.pial=mapPial2(cortex.path);
 cortex.color=[0.9 0.9 0.9];
 cortex.transparency=0.1; % To view only opaque cortex =1;
