@@ -5,8 +5,7 @@ hold on
 
 % % PLOT CORTEX
 % 
-%cortex.path='/Users/jakub/Matlab/Collaboration_Cabral/LEiDA/LEiDA-Vohryzek_PSILODEP/Functions/MNI152_T1_2mm_brain_mask.nii';
-cortex.path='./dbs80symm_2mm.nii';
+cortex.path='./MNI152_T1_2mm_brain_mask.nii';
 cortex.pial=mapPial2(cortex.path);
 cortex.color=[0.9 0.9 0.9];
 cortex.transparency=0.1; % To view only opaque cortex =1;
@@ -27,6 +26,7 @@ V=round(V*10)/10;  % round small values close to zero
 ori=[65 45.5 35];
 
 load aal_cog.txt aal_cog
+
 scale=5.5;
 MNI_coord=scale*(aal_cog/10);
 clear aal_cog

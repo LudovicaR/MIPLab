@@ -348,7 +348,7 @@ colormap(jet)
 
 for c=1:K
     subplot(5,K,c)
-    % This needs function plot_nodes_in_cortex.m and aal_cog.txt
+    % This needs function plot_nodes_in_cortex.m and aal_cog.m
     plot_nodes_in_cortex(V(c,1:N_areas))
     subplot(5,K,K+c)
     plot_nodes_in_cortex(V(c,N_areas:N_areas))
@@ -362,34 +362,34 @@ for c=1:K
     ylabel('Brain area #')
     xlabel('Brain area #')
     
-%     subplot(5,K,3*K+c)
-%     Group1=squeeze(P(1:NSUB_AgCC,k,ind_sort(c)));
-%     Group2=squeeze(P(NSUB_AgCC+1:NSUB_AgCC+NSUB_Controls,k,ind_sort(c)));
-%     bar([mean(Group1) mean(Group2)],'EdgeColor','w','FaceColor',[.5 .5 .5])
-%     hold on
-%     % Error bar containing the standard error of the mean
-%     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
-%     set(gca,'XTickLabel',{'Rest', 'Task'})
-%     if P_pval(k,ind_sort(c))<0.05
-%         plot(1.5,max([mean(Rest) mean(Task)])+.01,'*k')
-%     end
-%     if c==1
-%         ylabel('Probability')
-%     end
-%     box off
-%     
-%     subplot(5,K,4*K+c)
-%     Rest=squeeze(LT(1,:,k,ind_sort(c)));
-%     Task=squeeze(LT(2,:,k,ind_sort(c)));
-%     bar([mean(Rest) mean(Task)],'EdgeColor','w','FaceColor',[.5 .5 .5])
-%     hold on
-%     errorbar([mean(Rest) mean(Task)],[std(Rest)/sqrt(numel(Rest)) std(Task)/sqrt(numel(Task))],'LineStyle','none','Color','k')
-%     set(gca,'XTickLabel',{'Group1: AgCC', 'Group2 : Controls'})
-%     if LT_pval(k,ind_sort(c))<0.05
-%         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
-%     end
-%     if c==1
-%         ylabel('Lifetime (seconds)')
-%     end
-%     box off
+    subplot(5,K,3*K+c)
+    Group1=squeeze(P(1:NSUB_AgCC,k,ind_sort(c))); % AgCC
+    Group2=squeeze(P(NSUB_AgCC+1:NSUB_AgCC+NSUB_Controls,k,ind_sort(c))); % Controls
+    bar([mean(Group1) mean(Group2)],'EdgeColor','w','FaceColor',[.5 .5 .5])
+    hold on
+    % Error bar containing the standard error of the mean
+    errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
+    set(gca,'XTickLabel',{'AgCC', 'Controls'})
+    if P_pval(k,ind_sort(c))<0.05
+        plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
+    end
+    if c==1
+        ylabel('Probability')
+    end
+    box off
+    
+    subplot(5,K,4*K+c)
+    Group1=squeeze(P(1:NSUB_AgCC,k,ind_sort(c))); % AgCC
+    Group2=squeeze(P(NSUB_AgCC+1:NSUB_AgCC+NSUB_Controls,k,ind_sort(c))); % Controls
+    bar([mean(Group1) mean(Group2)],'EdgeColor','w','FaceColor',[.5 .5 .5])
+    hold on
+    errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
+    set(gca,'XTickLabel',{'AgCC', 'Controls'})
+    if LT_pval(k,ind_sort(c))<0.05
+        plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
+    end
+    if c==1
+        ylabel('Lifetime (seconds)')
+    end
+    box off
 end
