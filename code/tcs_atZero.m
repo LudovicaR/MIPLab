@@ -33,10 +33,12 @@ for s=1:NSUB
     % subject's BOLD signals
     BOLD = All_Subjs_TCS(:,:,s);
     
-    % initialize the counter of areas with timecourses 0
     areas = []; 
+    labels = [];
     
     for seed=1:N_areas
+        
+        labels = [labels, seed];
         
         if BOLD(seed,:) == zeros(TP)
             
@@ -68,7 +70,9 @@ end
 
 areas_zero = unique(areas_zero.','rows').';
 
+labels(areas_zero) = [];
+
 % save the structure in a .txt file
 writetable(struct2table(timeZero), 'timecourses_zero.txt')
-save areas_zero.mat areas_zero
+save areas_zero.mat areas_zero labels
 
