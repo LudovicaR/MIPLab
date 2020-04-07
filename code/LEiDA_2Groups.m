@@ -348,21 +348,20 @@ colormap(jet)
 
 for c=1:K
     subplot(5,K,c)
-    % This needs function plot_nodes_in_cortex.m and aal_cog.m
-    plot_nodes_in_cortex(V(c,1:N_areas))
-    subplot(5,K,K+c)
-    plot_nodes_in_cortex(V(c,N_areas:N_areas))
+    % This needs function plot_nodes_in_cortex.m and aal_cog.txt
+    plot_nodes_in_cortex(V(c,1:length(labels)))
     title({['State #' num2str(c)]})
-    subplot(5,K,2*K+c)
-    FC_V=V(c,1:N_areas)'*V(c,1:N_areas)+V(c,N_areas:N_areas)'*V(c,N_areas:N_areas);
-    li=max(abs(FC_V(:)));
+    
+    subplot(5,K,K+c)
+    FC_V=V(c,1:N_areas)'*V(c,1:N_areas);
+    li=max(abs(FC_V(:))); % color bar simmetrica, in base al massimo o plottare nel range originale 
     imagesc(FC_V,[-li li])
     axis square
     title('FC pattern')
     ylabel('Brain area #')
     xlabel('Brain area #')
     
-    subplot(5,K,3*K+c)
+    subplot(5,K,2*K+c)
     Group1=squeeze(P(1:NSUB_AgCC,k,ind_sort(c))); % AgCC
     Group2=squeeze(P(NSUB_AgCC+1:NSUB_AgCC+NSUB_Controls,k,ind_sort(c))); % Controls
     bar([mean(Group1) mean(Group2)],'EdgeColor','w','FaceColor',[.5 .5 .5])
@@ -378,7 +377,7 @@ for c=1:K
     end
     box off
     
-    subplot(5,K,4*K+c)
+    subplot(5,K,3*K+c)
     Group1=squeeze(P(1:NSUB_AgCC,k,ind_sort(c))); % AgCC
     Group2=squeeze(P(NSUB_AgCC+1:NSUB_AgCC+NSUB_Controls,k,ind_sort(c))); % Controls
     bar([mean(Group1) mean(Group2)],'EdgeColor','w','FaceColor',[.5 .5 .5])

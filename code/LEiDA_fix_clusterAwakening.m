@@ -12,7 +12,7 @@ function [PTRANSITION,Pstates] = LEiDA_fix_clusterNew(BOLD,NumClusters,Center,TR
 [N_areas, Tmax]=size(BOLD);
 
 % Preallocate variables to save FC patterns and associated information
-Leading_Eig=zeros(Tmax,2*N_areas); % All leading eigenvectors
+Leading_Eig=zeros(Tmax,N_areas); % All leading eigenvectors
 
 % Bandpass filter settings
 fnq=1/(2*TR);                 % Nyquist frequency
@@ -22,11 +22,7 @@ Wn=[flp/fnq fhi/fnq];         % butterworth bandpass non-dimensional frequency
 k=2;                          % 2nd order butterworth filter
 [bfilt,afilt]=butter(k,Wn);   % construct the filter
 clear fnq flp fhi Wn k
-% shifted enough with respect to the theorem (if you model a signal the carrier
-% should have a high enough freq with respect to the original signal -->
-% you should shift it far enough, otherwise you can't distinguish the carrier
-% from the signal).
-% frequency band shown because the less affected by noise
+
 t_all=0; % Index of time (starts at 0 and will be updated until n_Sub*Tmax)
 
 Phase_BOLD=zeros(N_areas,Tmax);
