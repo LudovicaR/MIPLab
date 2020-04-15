@@ -23,17 +23,17 @@
 %       the standard deviation of the sum of complex array composed of cos 
 %       and sin of the phase of BOLD signals.
 % - ksdist: the Kolmogorov-Smirnov distance statistic.
-% - klpstatessleep: symmetrized K-L distance between empirical and simulated in sleep state.
-% - klpstatesawake: symmetrized K-L distance between empirical and simulated in awake state.
-% - kldistsleep: symmetrized K-L for the transition state (sleep). 
-% - kldistawake: symmetrized K-L for the transition state (awake).
-% - entropydistawake: Markov Entropy for the awake state. 
-% - entropydistsleep: Markov Entropy for the sleep state. 
+% - klpstatesControl: symmetrized K-L distance between empirical and simulated in control group.
+% - klpstatesAgCC: symmetrized K-L distance between empirical and simulated in AgCC group.
+% - kldistControl: symmetrized K-L for the transition state (Control). 
+% - kldistAgCC: symmetrized K-L for the transition state (AgCC).
+% - entropydistAgCC: Markov Entropy for the AgCC group. 
+% - entropydistControl: Markov Entropy for the Control group. 
 % - fitt: 
 %       correlation coefficient between empirical and simulated Functional Connectivites (FC)
 % - Coptim: 
 %       effective connectivity for the global coupling factor, derived from 
-%       the structural connectivity 90x90 matrix.
+%       the structural connectivity 80x80 matrix.
 % - n_Subjects: the number of subjects. 
 % - f_diff: the intrinsic frequency for each region
 %
@@ -45,8 +45,8 @@ clear all;
 %% Load LEiDA results
 load  empiricalLEiDA.mat; % file with results computed in LEiDA_2Conditions.m
 
-P1emp=mean(P1emp);
-P2emp=mean(P2emp);
+P1emp=mean(P1emp); %probability of occurrence of AgCC group
+P2emp=mean(P2emp); %probability of occurrence of Control group
 
 %% Load Structural Connectivity
 % The structural connectivity matrix is obtained using diffusion MRI and
@@ -381,15 +381,15 @@ for we=WE % loops over changing coupling constant G
     
     
     %% C1b: KL-DISTANCE BETWEEN EMPIRICAL AND SIMULATED PROBABILITY OF OCCURENCE
-    klpstatessleep(iwe)=0.5*(sum(Pstates.*log(Pstates./P2emp))+sum(P2emp.*log(P2emp./Pstates)));
-    klpstatesawake(iwe)=0.5*(sum(Pstates.*log(Pstates./P1emp))+sum(P1emp.*log(P1emp./Pstates)));
+    klpstatesControl(iwe)=0.5*(sum(Pstates.*log(Pstates./P2emp))+sum(P2emp.*log(P2emp./Pstates)));
+    klpstatesAgCC(iwe)=0.5*(sum(Pstates.*log(Pstates./P1emp))+sum(P1emp.*log(P1emp./Pstates)));
     
     %% C1c:EXTRA FITTING BETWEEN EMPIRICAL AND SIMULATED PROBABILITY OF TRANSITION
     
-    kldistsleep(iwe)=KLdist(PTR2emp,PTRsim);
-    kldistawake(iwe)=KLdist(PTR1emp,PTRsim);
-    entropydistsleep(iwe)=EntropyMarkov(PTR2emp,PTRsim);
-    entropydistawake(iwe)=EntropyMarkov(PTR1emp,PTRsim);
+    kldistControl(iwe)=KLdist(PTR2emp,PTRsim);
+    kldistAgCC(iwe)=KLdist(PTR1emp,PTRsim);
+    entropydistControl(iwe)=EntropyMarkov(PTR2emp,PTRsim);
+    entropydistAgCC(iwe)=EntropyMarkov(PTR1emp,PTRsim);
     
     PTRsimul(iwe,:,:)=PTRsim;
     %%%
@@ -398,11 +398,11 @@ for we=WE % loops over changing coupling constant G
     iwe=iwe+1;
     
     ksdist
-    klpstatesawake
+    klpstatesAgCC
 
 end
 %% Saving
-save optimizedhopfawake.mat WE PTRsimul Pstatessimul metastability ksdist klpstatessleep klpstatesawake kldistsleep kldistawake entropydistawake entropydistsleep fitt Coptim NSUB f_diff;
+save optimizedhopfawake.mat WE PTRsimul Pstatessimul metastability ksdist klpstatesControl klpstatesAgCC kldistControl kldistAgCC entropydistAgCC entropydistControl fitt Coptim NSUB f_diff;
 
                     %%%%%%%%%%%%  D: VISUALISATION %%%%%%%%%%%%
 %% D1: PLOTTING
@@ -410,31 +410,31 @@ save optimizedhopfawake.mat WE PTRsimul Pstatessimul metastability ksdist klpsta
 figure
 plot(WE,fitt,'b');
 hold on;
-plot(WE,kldistawake,'k'); %% extra
-plot(WE,entropydistawake,'k'); %%   extra
+plot(WE,kldistControl,'k'); %% extra
+plot(WE,entropydistControl,'k'); %%   extra
 saveas(gcf,'figure1_optim.png')
 
 figure
 plot(WE,metastability,'r');
 hold on;
 plot(WE,ksdist,'c');
-plot(WE,klpstatesawake,'k');
-plot(WE,klpstatessleep,'b');
+%plot(WE,klpstatesAgCC,'k');
+plot(WE,klpstatesControl,'b');
 saveas(gcf,'figure2_optim.png')
 
 % 
 % figure
 % plot(WE,fitt,'b');
 % figure
-% plot(WE,kldistsleep,'r');
+% plot(WE,kldistControl,'r');
 % hold on;
-% plot(WE,kldistawake,'k');
+% plot(WE,kldistAgCC,'k');
 % figure
-% plot(WE,entropydistsleep,'r');
+% plot(WE,entropydistControl,'r');
 % hold on;
-% plot(WE,entropydistawake,'k');    
+% plot(WE,entropydistAgCC,'k');    
 % figure
-% plot(WE,klpstatessleep,'r');
+% plot(WE,klpstatesControl,'r');
 % hold on;
-% plot(WE,klpstatesawake,'k');   
+% plot(WE,klpstatesAgCC,'k');   
         
