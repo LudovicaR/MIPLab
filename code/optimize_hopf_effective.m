@@ -402,7 +402,7 @@ for we=WE % loops over changing coupling constant G
 
 end
 %% Saving
-save optimizedhopfawake.mat WE PTRsimul Pstatessimul metastability ksdist klpstatessleep klpstatesawake kldistsleep kldistawake entropydistawake entropydistsleep fitt Coptim n_Subjects f_diff;
+save optimizedhopfawake.mat WE PTRsimul Pstatessimul metastability ksdist klpstatessleep klpstatesawake kldistsleep kldistawake entropydistawake entropydistsleep fitt Coptim NSUB f_diff;
 
                     %%%%%%%%%%%%  D: VISUALISATION %%%%%%%%%%%%
 %% D1: PLOTTING
@@ -412,12 +412,15 @@ plot(WE,fitt,'b');
 hold on;
 plot(WE,kldistawake,'k'); %% extra
 plot(WE,entropydistawake,'k'); %%   extra
+saveas(gcf,'figure1_optim.png')
+
 figure
 plot(WE,metastability,'r');
 hold on;
 plot(WE,ksdist,'c');
 plot(WE,klpstatesawake,'k');
 plot(WE,klpstatessleep,'b');
+saveas(gcf,'figure2_optim.png')
 
 % 
 % figure
