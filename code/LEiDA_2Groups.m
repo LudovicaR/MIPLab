@@ -334,10 +334,22 @@ end
 
 save empiricalLEiDA.mat Vemp P1emp P2emp LT1emp LT2emp PTR1emp PTR2emp Number_Clusters;
 
+%% For plots, put areas removed back to zero
+V = Vemp;
+
+% set areas that were removed back to zero for the plots
+zero_vec = zeros(size(All_Subjs_TCS(1,:,:)));
+for i=1:length(areas_zero)
+    area = areas_zero(i);
+    All_Subjs_TCS = cat(1,All_Subjs_TCS(1:area,:,:),zero_vec,All_Subjs_TCS(area+1:end,:,:));
+    V = cat(2,V(:,1:area),zeros(1,size(V,1))',V(:,area+1:end));
+end
+
+N_areas = size(All_Subjs_TCS,1);
+
 %% Plotting
 disp(' ')
 disp('%%% PLOTS %%%%')
-
 
 figure
 colormap(jet)
