@@ -6,6 +6,7 @@
 % Gustavo Deco
 % Edited by
 % Jakub Vohryzek February 2020
+% Ludovica Romanin April 2020
 %
 % Deco, Gustavo, et al. "Awakening: Predicting external stimulation
 % to force transitions between different brain states." Proceedings 
@@ -15,31 +16,38 @@
 clear all;
 %% Loading Files
 load  empiricalLEiDA.mat;
-load  optimizedhopfawake.mat
-
 P1emp=mean(P1emp);
 P2emp=mean(P2emp);
+
+load  optimizedhopfawake.mat;
+
 %% Perturbation Protocol
 PERTURB=0:0.01:0.1;  %% This is synchronisation protocol
 %PERTURB=0:-0.025:-0.4; %% This is for the noise Protocol
 %% Parameters
+load Controls_TCS.mat
+
+% remove the areas with timecourses at zero 
+load areas_zero.mat
+Controls_TCS(areas_zero,:,:) = [];
+
 we=0.09;
 ITER=30;
-N=90;
+N=size(Controls_TCS,1);
 a=zeros(N,2);
 % Coptim: from optimize_hopf_effective, it is the Effective Connectivity
 % for the Global Coupling Factor (WE)
 C=squeeze(Coptim(find(abs(WE-we)<0.0001),:,:));
 
-TSmax=1000;
-NSUB=n_Subjects;
-TR=2.08;  % Repetition Time (seconds)
+TP=size(Controls_TCS,2);
+NSUB=size(Controls_TCS,3);
+TR=2;  % Repetition Time (seconds)
 NumClusters=Number_Clusters;
 
 omega = repmat(2*pi*f_diff',1,2); omega(:,1) = -omega(:,1);
 
 dt=0.1*TR/2;
-Tmax=NSUB*TSmax;
+Tmax=NSUB*TP;
 sig=0.02;
 dsig = sqrt(dt)*sig; % to avoid sqrt(dt) at each time step
 

@@ -45,8 +45,9 @@ clear all;
 %% Load LEiDA results
 load  empiricalLEiDA.mat; % file with results computed in LEiDA_2Conditions.m
 
-P1emp=mean(P1emp); %probability of occurrence of AgCC group
-P2emp=mean(P2emp); %probability of occurrence of Control group
+% parameters from empiricalLEiDA.mat
+P1emp=mean(P1emp); % mean probability of occurrence of AgCC group
+P2emp=mean(P2emp); % mean probability of occurrence of Control group
 
 %% Load Structural Connectivity
 % The structural connectivity matrix is obtained using diffusion MRI and
@@ -376,7 +377,7 @@ for we=WE % loops over changing coupling constant G
                           %%%%%%%%%%%%  C: COMPARISON %%%%%%%%%%%%
     %% C1a: PROBABILISTIC STATE SPACE
 
-    [PTRsim,Pstates]=LEiDA_fix_clusterAwakening(xs',NumClusters,Vemp,TR);  
+    [PTRsim,Pstates]=LEiDA_fix_clusterAwakening(xs',NumClusters,Vemp,TR);  % Vemp, parameter from empiricalLEiDA.mat
     
     
     
@@ -387,8 +388,8 @@ for we=WE % loops over changing coupling constant G
     %% C1c:EXTRA FITTING BETWEEN EMPIRICAL AND SIMULATED PROBABILITY OF TRANSITION
     
     kldistControl(iwe)=KLdist(PTR2emp,PTRsim);
-    kldistAgCC(iwe)=KLdist(PTR1emp,PTRsim);
-    entropydistControl(iwe)=EntropyMarkov(PTR2emp,PTRsim);
+    kldistAgCC(iwe)=KLdist(PTR1emp,PTRsim); % PTR1emp, parameter from empiricalLEiDA.mat
+    entropydistControl(iwe)=EntropyMarkov(PTR2emp,PTRsim); % PTR2emp, parameter from empiricalLEiDA.mat
     entropydistAgCC(iwe)=EntropyMarkov(PTR1emp,PTRsim);
     
     PTRsimul(iwe,:,:)=PTRsim;
@@ -404,23 +405,38 @@ end
 %% Saving
 save optimizedhopfawake.mat WE PTRsimul Pstatessimul metastability ksdist klpstatesControl klpstatesAgCC kldistControl kldistAgCC entropydistAgCC entropydistControl fitt Coptim NSUB f_diff;
 
+save HopfModel_results.mat
+
                     %%%%%%%%%%%%  D: VISUALISATION %%%%%%%%%%%%
 %% D1: PLOTTING
+
+% WE: global coupling factor
+% fitt: correlation coefficient between empirical and simulated Functional Connectivites (FC)
+% kldistawake: symmetrized K-L for the transition state
+% entropydistawake: Markov Entropy for the state. 
+% metastability: the quality of systems to temporarily persist in an existing equilibrium despite slight perturbations.
+% ksdist: Kolmogorov-Smirnov distance statistic
+% klpstatesawake: symmetrized K-L distance between empirical and simulated
 
 figure
 plot(WE,fitt,'b');
 hold on;
 plot(WE,kldistControl,'k'); %% extra
-plot(WE,entropydistControl,'k'); %%   extra
-saveas(gcf,'figure1_optim.png')
+plot(WE,entropydistControl,'r'); %%   extra
+title('Statistics for Control group model')
+xlabel('global coupling factor')
+legend('corr btw empirical and simulated FC', 'sym. K-L for the transition', 'Markov Entropy')
+saveas(gcf,'optim_fig1.png')
 
 figure
 plot(WE,metastability,'r');
 hold on;
 plot(WE,ksdist,'c');
-%plot(WE,klpstatesAgCC,'k');
 plot(WE,klpstatesControl,'b');
-saveas(gcf,'figure2_optim.png')
+title('Statistics for Control group model')
+xlabel('global coupling factor')
+legend('metastability', 'KS distance', 'sym. K-L distance btw empirical and simulated')
+saveas(gcf,'optim_fig2.png')
 
 % 
 % figure
