@@ -221,80 +221,10 @@ PTRsimul=zeros(NWE,NumClusters,NumClusters);
 Pstatessimul=zeros(NWE,NumClusters);
 
 for we=WE % loops over changing coupling constant G
-    minm=100;
-    Cnew=C;
-    %% B1: Optimize - ANEC
-    % ANEC: Averaged Null Energy Condition 
-    for iter=1:150 % iterations for the ANEC optimisation
-        wC = we*Cnew; % multiplies SC with we(constant G)
-        sumC = repmat(sum(wC,2),1,2); % for sum Cij*xj
-        xs=zeros(Tmax,N);
-        % number of iterations, 100
-        z = 0.1*ones(N,2); % --> x = z(:,1), y = z(:,2)
-        nn=0;
-        %% B1a: MODEL DISCARD: first 3000 time steps
-        for t=0:dt:3000
-            suma = wC*z - sumC.*z; % sum(Cij*xi) - sum(Cij)*xj
-            zz = z(:,end:-1:1); % flipped z, because (x.*x + y.*y)
-            z = z + dt*(a.*z + zz.*omega - z.*(z.*z+zz.*zz) + suma) + dsig*randn(N,2);
-        end
-        %% B1b: MODEL:
-        % actual modeling (x=BOLD signal (Interpretation), y some other oscillation)
-        for t=0:dt:((Tmax-1)*TR)
-            suma = wC*z - sumC.*z; % sum(Cij*xi) - sum(Cij)*xj
-            zz = z(:,end:-1:1); % flipped z, because (x.*x + y.*y)
-            z = z + dt*(a.*z + zz.*omega - z.*(z.*z+zz.*zz) + suma) + dsig*randn(N,2);
-            if abs(mod(t,TR))<0.01
-                nn=nn+1;
-                xs(nn,:)=z(:,1)';
-            end
-        end
-        %% B1c: COMPUTE: hilbert transform
-        BOLD=xs';
-        signal_filt=zeros(N,nn);
-        Phase_BOLD=zeros(N,nn);
-        for seed=1:N
-            BOLD(seed,:)=demean(detrend(BOLD(seed,:)));
-            signal_filt(seed,:) =filtfilt(bfilt2,afilt2,BOLD(seed,:));
-            Phase_BOLD(seed,:) = angle(hilbert(signal_filt(seed,:)));
-        end
-        %% B1d: COMPUTE: iFC
-        for t=1:nn
-            for n=1:N
-                for p=1:N
-                    iFC(t,n,p)=cos(Phase_BOLD(n,t)-Phase_BOLD(p,t));
-                end
-            end
-        end
-        FCphases=squeeze(mean(iFC));
-        
-        %% B1e: COMPUTE: ANEC (Averaged Null Energy Condition)
-        % Update Effective Connectivity (EC) Matrix Cnew
-        % EC: effectiveness of synaptic connections between brain regions 
-        for i=1:N
-            for j=i+1:N
-                if (C(i,j)>0 || j==N-i+1)
-                    Cnew(i,j)=Cnew(i,j)+0.01*(FCphasesemp(i,j)-FCphases(i,j));
-                    if Cnew(i,j)<0
-                        Cnew(i,j)=0;
-                    end
-                    Cnew(j,i)=Cnew(i,j);
-                end
-            end
-        end
-        
-        Cnew=Cnew/max(max(Cnew))*0.2;
-        
-        D = abs(FCphasesemp-FCphases).^2;
-        MSE = sum(D(:))/numel(FCphases);
-        if MSE<0.01
-            break;
-        end
-        
-    end 
-    Coptim(iwe,:,:)=Cnew;  %% Effective Connectivity for G (Global Coupling Factor) (we)
-
     %% B2: FINAL SIMULATION
+    
+    wC = we*C; % multiplies SC with we(constant G)
+    sumC = repmat(sum(wC,2),1,2); % for sum Cij*xj
     
     xs=zeros(Tmax,N);
     % number of iterations, 100
@@ -404,7 +334,7 @@ for we=WE % loops over changing coupling constant G
 
 end
 %% Saving
-save optimizedhopfawake.mat WE PTRsimul Pstatessimul metastability ksdist klpstatesControl klpstatesAgCC kldistControl kldistAgCC entropydistAgCC entropydistControl fitt Coptim NSUB f_diff;
+save optimizedhopfawake.mat WE PTRsimul Pstatessimul metastability ksdist klpstatesControl klpstatesAgCC kldistControl kldistAgCC entropydistAgCC entropydistControl fitt NSUB f_diff;
 
 %save HopfModel_results.mat
 
@@ -418,40 +348,3 @@ save optimizedhopfawake.mat WE PTRsimul Pstatessimul metastability ksdist klpsta
 % metastability: the quality of systems to temporarily persist in an existing equilibrium despite slight perturbations.
 % ksdist: Kolmogorov-Smirnov distance statistic
 % klpstatesawake: symmetrized K-L distance between empirical and simulated
-
-figure
-plot(WE,fitt,'b');
-hold on;
-plot(WE,kldistControl,'k'); %% extra
-plot(WE,entropydistControl,'r'); %%   extra
-title('Statistics for Control group model')
-xlabel('global coupling factor')
-legend('corr btw empirical and simulated FC', 'sym. K-L for the transition', 'Markov Entropy')
-saveas(gcf,'optim_fig1.png')
-
-figure
-plot(WE,metastability,'r');
-hold on;
-plot(WE,ksdist,'c');
-plot(WE,klpstatesControl,'b');
-title('Statistics for Control group model')
-xlabel('global coupling factor')
-legend('metastability', 'KS distance', 'sym. K-L distance btw empirical and simulated')
-saveas(gcf,'optim_fig2.png')
-
-% 
-% figure
-% plot(WE,fitt,'b');
-% figure
-% plot(WE,kldistControl,'r');
-% hold on;
-% plot(WE,kldistAgCC,'k');
-% figure
-% plot(WE,entropydistControl,'r');
-% hold on;
-% plot(WE,entropydistAgCC,'k');    
-% figure
-% plot(WE,klpstatesControl,'r');
-% hold on;
-% plot(WE,klpstatesAgCC,'k');   
-        
