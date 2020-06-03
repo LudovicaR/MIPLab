@@ -23,17 +23,11 @@
 %       the standard deviation of the sum of complex array composed of cos 
 %       and sin of the phase of BOLD signals.
 % - ksdist: the Kolmogorov-Smirnov distance statistic.
-% - klpstatesControl: symmetrized K-L distance between empirical and simulated in control group.
-% - klpstatesAgCC: symmetrized K-L distance between empirical and simulated in AgCC group.
-% - kldistControl: symmetrized K-L for the transition state (Control). 
-% - kldistAgCC: symmetrized K-L for the transition state (AgCC).
-% - entropydistAgCC: Markov Entropy for the AgCC group. 
-% - entropydistControl: Markov Entropy for the Control group. 
+% - klpstates: symmetrized K-L distance between empirical and simulated in control group.
+% - kldist_pms: symmetrized K-L for the transition state  
+% - entropydist_pms: Markov Entropy 
 % - fitt: 
 %       correlation coefficient between empirical and simulated Functional Connectivites (FC)
-% - Coptim: 
-%       effective connectivity for the global coupling factor, derived from 
-%       the structural connectivity 80x80 matrix.
 % - n_Subjects: the number of subjects. 
 % - f_diff: the intrinsic frequency for each region
 %
@@ -46,16 +40,15 @@ clear all;
 load  empiricalLEiDA.mat; % file with results computed in LEiDA_2Conditions.m
 
 % parameters from empiricalLEiDA.mat
-P1emp=mean(P1emp); % mean probability of occurrence of AgCC group
-P2emp=mean(P2emp); % mean probability of occurrence of Control group
+P2emp=mean(P2emp); % mean probability of occurrence of the Control group
 
 %% Load Structural Connectivity
 % The structural connectivity matrix is obtained using diffusion MRI and
 % tractography. 
 % The number of coupled dynamical units is equal to the number of cortical 
 % and subcortical areas from the AAL (atlas) parcellation.
-load sc_dbs80.mat;
-C=sc;
+load meanSC_56HC_Desikan_woCC.mat;
+C=meanSC;
 C=C/max(max(C))*0.2;
 
 % remove the areas with timecourses at zero from the SC matrix
@@ -100,6 +93,8 @@ N=size(Controls_TCS,1);
 % tril: extract lower triangular part; 
 Isubdiag = find(tril(ones(N),-1));
 
+phfcddata_emp = zeros(1, (TP-21)*NSUB*((TP-21-1)/2));
+
 for nsub=1:NSUB
     signaldata=Controls_TCS(:,:,nsub);
     Phase_BOLD_data=zeros(N,TP);
@@ -132,7 +127,8 @@ for nsub=1:NSUB
         p1=mean(pattern(t:t+2,:));
         for t2=t+1:npattmax-2
             p2=mean(pattern(t2:t2+2,:));
-            phfcddata(kk)=dot(p1,p2)/norm(p1)/norm(p2);
+            % phfcddata: FCD for empirical data
+            phfcddata(kk)=dot(p1,p2)/norm(p1)/norm(p2); % cosine similary for KS distance
             kk=kk+1;
         end
     end
@@ -150,6 +146,8 @@ end
 FCphasesemp=squeeze(mean(FCphasesemp2));
 metastabilitydata=mean(metastabilitydata2);
 
+phfcddata_emp = phfcddata;
+
 %% A2: SPECTRAL ANALYSIS
 % Extracting peak of data power spectra for determining omega (Hopf)
 for nsub=1:NSUB
@@ -164,8 +162,8 @@ for nsub=1:NSUB
     
     %%%%
     
-    [aux minfreq]=min(abs(freq-0.04)); % min frequency of the cut-ff
-    [aux maxfreq]=min(abs(freq-0.07)); % max frequency of the cut-ff
+    [aux minfreq]=min(abs(freq-0.04)); % min frequency of the cut-off
+    [aux maxfreq]=min(abs(freq-0.07)); % max frequency of the cut-off
     nfreqs=length(freq);
     
     for seed=1:N
@@ -219,6 +217,10 @@ a=zeros(N,2); % a bifurcation parameter if = 0 => at the bifurcation
 NWE=length(WE);
 PTRsimul=zeros(NWE,NumClusters,NumClusters);
 Pstatessimul=zeros(NWE,NumClusters);
+
+pat_size = N*(N-1) + (TP-21) - 2;
+
+phfcd_sim = zeros(NWE, 1, pat_size*(pat_size-1)/2);
 
 for we=WE % loops over changing coupling constant G
     %% B2: FINAL SIMULATION
@@ -289,7 +291,8 @@ for we=WE % loops over changing coupling constant G
         p1=mean(pattern(t:t+2,:));
         for t2=t+1:npattmax-2
             p2=mean(pattern(t2:t2+2,:));
-            phfcd(kk)=dot(p1,p2)/norm(p1)/norm(p2);
+            % phfcd is the FCD for simulated data 
+            phfcd(kk)=dot(p1,p2)/norm(p1)/norm(p2); % cosine  similarity for KS distance
             kk=kk+1;
         end
     end
@@ -303,25 +306,26 @@ for we=WE % loops over changing coupling constant G
     % max[S1(x) - S2(x)] for TAIL='larger', and max[S2(x) - S1(x)] for 
     % TAIL='smaller'.
     % P is the P-value, compared to the significance level of 5%.
+    % pdfcd is for the model (simulated)
+    % phfcddata is for the empirical 
     [H,P,ksdist(iwe)]=kstest2(phfcd,phfcddata);
+    
+    phfcd_sim(iwe,:,:) = phfcd;
     
                           %%%%%%%%%%%%  C: COMPARISON %%%%%%%%%%%%
     %% C1a: PROBABILISTIC STATE SPACE
 
     [PTRsim,Pstates]=LEiDA_fix_clusterAwakening(xs',NumClusters,Vemp,TR);  % Vemp, parameter from empiricalLEiDA.mat
     
-    
-    
     %% C1b: KL-DISTANCE BETWEEN EMPIRICAL AND SIMULATED PROBABILITY OF OCCURENCE
-    klpstatesControl(iwe)=0.5*(sum(Pstates.*log(Pstates./P2emp))+sum(P2emp.*log(P2emp./Pstates)));
-    klpstatesAgCC(iwe)=0.5*(sum(Pstates.*log(Pstates./P1emp))+sum(P1emp.*log(P1emp./Pstates)));
+    klpstates(iwe)=0.5*(sum(Pstates.*log(Pstates./P2emp))+sum(P2emp.*log(P2emp./Pstates)));
     
     %% C1c:EXTRA FITTING BETWEEN EMPIRICAL AND SIMULATED PROBABILITY OF TRANSITION
     
-    kldistControl(iwe)=KLdist(PTR2emp,PTRsim); % PTR2emp, parameter from empiricalLEiDA.mat
-    kldistAgCC(iwe)=KLdist(PTR1emp,PTRsim); % PTR1emp, parameter from empiricalLEiDA.mat
-    entropydistControl(iwe)=EntropyMarkov(PTR2emp,PTRsim); 
-    entropydistAgCC(iwe)=EntropyMarkov(PTR1emp,PTRsim);
+    % to test the significance of the two metrics for the model fitting 
+    
+    kldist_pms(iwe)=KLdist(PTR2emp,PTRsim); % PTR2emp, parameter from empiricalLEiDA.mat
+    entropydist_pms(iwe)=EntropyMarkov(PTR2emp,PTRsim); 
     
     PTRsimul(iwe,:,:)=PTRsim;
     %%%
@@ -330,13 +334,15 @@ for we=WE % loops over changing coupling constant G
     iwe=iwe+1;
     
     ksdist
-    klpstatesAgCC
+    klpstates
 
 end
 %% Saving
-save optimizedhopfawake.mat WE PTRsimul Pstatessimul metastability ksdist klpstatesControl klpstatesAgCC kldistControl kldistAgCC entropydistAgCC entropydistControl fitt NSUB f_diff;
+save optimizedhopfawake_56HC_woCC.mat WE PTRsimul Pstatessimul metastability ksdist klpstates kldist_pms entropydist_pms fitt NSUB f_diff phfcddata_emp;
 
-%save HopfModel_results.mat
+save('fcd_result_56HC_woCC.mat', 'phfcd_sim', '-v7.3');
+
+save HopfModel_results_56HC_woCC.mat
 
                     %%%%%%%%%%%%  D: VISUALISATION %%%%%%%%%%%%
 %% D1: PLOTTING

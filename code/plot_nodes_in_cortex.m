@@ -1,4 +1,4 @@
-function plot_nodes_in_cortex (V)
+function plot_nodes_in_cortex (V, view_)
 
 % PLOT NODES
 hold on
@@ -77,12 +77,23 @@ set(gca,'CameraViewAngle', 6);
 set(gca, 'Projection', 'orthographic')
 set(gca, 'CameraTarget', [51 68 90])
 
+if view_ == 0
+    view([-90 90]) % top
+end
+
+if view_ == 1
+    view([-180 0]) % L sideways
+end
+
+if view_ == 2
+    view([90 0]) % front
+end
 
 %view([-90 60])
 %view([90 -90]) % ventral
-view([-90 90]) % top
+%view([-90 90]) % top
 %view([0 0]) % R sideways
-% view([-180 0]) % L sideways
+%view([-180 0]) % L sideways
 % view([45 20]) % perspective
 %view([90 0]) % front
 
