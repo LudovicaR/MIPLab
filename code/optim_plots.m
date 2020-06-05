@@ -1,6 +1,9 @@
 
 clear all;
-load meanSC_56HC_Desikan_woCC.mat;
+%load sc_dbs80.mat;
+%C=sc;
+
+load meanSC_56HC_Desikan.mat;
 C=meanSC;
 
 % remove the areas with timecourses at zero from the SC matrix
@@ -8,10 +11,12 @@ load areas_zero.mat
 C(areas_zero,:) = [];
 C(:,areas_zero) = [];
 
-load  optimizedhopfawake_56HC_woCC.mat;
+load  optimizedhopfawake_56HC.mat;
 load empiricalLEiDA.mat;
 
-load HopfModel_results_56HC_woCC.mat FC_simul FCemp FCphasesemp;
+
+%%
+load HopfModel_results_56HC.mat FC_simul FCemp FCphasesemp;
 
 % Optimal G for KL
 [M,I] = min(klpstates);
@@ -27,7 +32,7 @@ plot(WE,ksdist,'r');
 plot(WE,klpstates,'b');
 xline(we_optim_kl,'--b');
 xline(we_optim_ks,'--r');
-title('Statistics for Virtual Callosotomy')
+title('Statistics for Control model')
 xlabel('global coupling factor')
 legend('KS distance', 'KL distance')
 

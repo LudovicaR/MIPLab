@@ -1,4 +1,4 @@
-
+clear all; 
 load LEiDA_results.mat;
 
 %% For plots, put areas removed back to zero
@@ -28,16 +28,16 @@ for c=1:K
     subplot(5,K,c)
     % This needs function plot_nodes_in_cortex.m and aal_cog.txt
     plot_nodes_in_cortex(V(c,1:length(labels)),0)
-    title({['State #' num2str(c)]})
+    title({['State #' num2str(c)]}, 'FontSize', 12)
     
     subplot(5,K,K+c)
     FC_V=V(c,1:N_areas)'*V(c,1:N_areas);
     li=max(abs(FC_V(:))); % color bar simmetrica, in base al massimo o plottare nel range originale 
     imagesc(FC_V,[-li li])
     axis square
-    title('FC pattern')
-    ylabel('Brain area #')
-    xlabel('Brain area #')
+    title('FC pattern','FontSize', 12)
+    ylabel('Brain area #','FontSize', 12)
+    xlabel('Brain area #','FontSize', 12)
     
     subplot(5,K,2*K+c)
     Group1=squeeze(P(1:NSUB_AgCC,k,ind_sort(c))); % AgCC
@@ -46,12 +46,12 @@ for c=1:K
     hold on
     % Error bar containing the standard error of the mean
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
-    set(gca,'XTickLabel',{'AgCC', 'Controls'})
+    set(gca,'XTickLabel',{'AgCC', 'Controls'},'FontSize', 12)
     if P_pval(k,ind_sort(c))<0.05
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
     if c==1
-        ylabel('Probability')
+        ylabel('Probability','FontSize', 12)
     end
     box off
     
@@ -61,12 +61,12 @@ for c=1:K
     bar([mean(Group1) mean(Group2)],'EdgeColor','w','FaceColor',[.5 .5 .5])
     hold on
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
-    set(gca,'XTickLabel',{'AgCC', 'Controls'})
+    set(gca,'XTickLabel',{'AgCC', 'Controls'},'FontSize', 12)
     if LT_pval(k,ind_sort(c))<0.05
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
     if c==1
-        ylabel('Lifetime (seconds)')
+        ylabel('Lifetime (seconds)','FontSize', 12)
     end
     box off
     
@@ -95,51 +95,32 @@ for c=7:9
     title({['front']},'FontSize', 12) % coronal plane
 end
 
-%% compare complete vs. partial AgCC
+%% test significance of complete vs. partial AgCC
 
 % indeces of partial and complete AgCC
 idx_partial = [1,2,10,11,12];
 idx_complete = [3,4,5,6,7,8,9,13];
 
-n_partial = size(idx_partial,2);
-n_complete = size(idx_complete,2);
-
-figure
-
-for c = 1:K
-    
-    subplot(2,K,c)
-    Group1=squeeze(P(idx_partial,k,ind_sort(c))); % AgCC partial
-    Group2=squeeze(P(idx_complete,k,ind_sort(c))); % AgCC complete
+for c=1:K
+    subplot(1,K,c)
+    Group1=squeeze(P(idx_partial,k,ind_sort(c))); % partial AgCC
+    Group2=squeeze(P(idx_complete,k,ind_sort(c))); % complete AgCC
     bar([mean(Group1) mean(Group2)],'EdgeColor','w','FaceColor',[.5 .5 .5])
     hold on
     % Error bar containing the standard error of the mean
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
-    set(gca,'XTickLabel',{'partial', 'complete'})
+    set(gca,'XTickLabel',{'prt', 'cmp'},'FontSize', 12)
     if P_pval(k,ind_sort(c))<0.05
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
     if c==1
-        ylabel('AgCC probability')
-    end
-    box off
-    title({['State #' num2str(c)]})
-    
-    subplot(2,K,K+c)
-    Group1=squeeze(LT(idx_partial,k,ind_sort(c))); % AgCC partial
-    Group2=squeeze(LT(idx_complete,k,ind_sort(c))); % AgCC complete
-    bar([mean(Group1) mean(Group2)],'EdgeColor','w','FaceColor',[.5 .5 .5])
-    hold on
-    errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
-    set(gca,'XTickLabel',{'partial', 'complete'})
-    if LT_pval(k,ind_sort(c))<0.05
-        plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
-    end
-    if c==1
-        ylabel('AgCC Lifetime (seconds)')
+        ylabel('Probability','FontSize', 12)
     end
     box off
 end
 
+% ttest: control vs. AgCC
+[H_ctrl,P_ctrl, CI_ctrl, STATS_ctrl] = ttest2(P1emp, P2emp);
 
-
+% ttest: partial vs. complete AgCC
+[H_agcc_grp,P_agcc_grp, CI_agcc_grp, STATS_agcc_grp] = ttest2(Pemp_complete, Pemp_partial);

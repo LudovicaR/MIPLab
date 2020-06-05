@@ -330,6 +330,16 @@ for i=1:K
     PTR1emp(i,:)=PTR1emp(i,:)/n_sub1(i);
     PTR2emp(i,:)=PTR2emp(i,:)/n_sub2(i);
 end
+
+%% Statistics between groups of AgCC: partial vs. complete 
+
+% indeces of partial and complete AgCC
+idx_partial = [1,2,10,11,12];
+idx_complete = [3,4,5,6,7,8,9,13];
+
+Pemp_partial=squeeze(P(idx_partial,k,ind_sort));
+Pemp_complete=squeeze(P(idx_complete,k,ind_sort));
+
 %% Saving
 
 save LEiDA_results.mat

@@ -47,6 +47,8 @@ P2emp=mean(P2emp); % mean probability of occurrence of the Control group
 % tractography. 
 % The number of coupled dynamical units is equal to the number of cortical 
 % and subcortical areas from the AAL (atlas) parcellation.
+
+%load sc_dbs80.mat;
 load meanSC_56HC_Desikan_woCC.mat;
 C=meanSC;
 C=C/max(max(C))*0.2;
@@ -338,19 +340,8 @@ for we=WE % loops over changing coupling constant G
 
 end
 %% Saving
-save optimizedhopfawake_56HC_woCC.mat WE PTRsimul Pstatessimul metastability ksdist klpstates kldist_pms entropydist_pms fitt NSUB f_diff phfcddata_emp;
+save optimizedhopf_56HC_woCC.mat WE PTRsimul Pstatessimul metastability ksdist klpstates kldist_pms entropydist_pms fitt NSUB f_diff phfcddata_emp;
 
 save('fcd_result_56HC_woCC.mat', 'phfcd_sim', '-v7.3');
 
 save HopfModel_results_56HC_woCC.mat
-
-                    %%%%%%%%%%%%  D: VISUALISATION %%%%%%%%%%%%
-%% D1: PLOTTING
-
-% WE: global coupling factor
-% fitt: correlation coefficient between empirical and simulated Functional Connectivites (FC)
-% kldistawake: symmetrized K-L for the transition state
-% entropydistawake: Markov Entropy for the state. 
-% metastability: the quality of systems to temporarily persist in an existing equilibrium despite slight perturbations.
-% ksdist: Kolmogorov-Smirnov distance statistic
-% klpstatesawake: symmetrized K-L distance between empirical and simulated

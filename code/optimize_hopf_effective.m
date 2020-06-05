@@ -383,15 +383,12 @@ for we=WE % loops over changing coupling constant G
     
     
     %% C1b: KL-DISTANCE BETWEEN EMPIRICAL AND SIMULATED PROBABILITY OF OCCURENCE
-    klpstatesControl(iwe)=0.5*(sum(Pstates.*log(Pstates./P2emp))+sum(P2emp.*log(P2emp./Pstates)));
-    klpstatesAgCC(iwe)=0.5*(sum(Pstates.*log(Pstates./P1emp))+sum(P1emp.*log(P1emp./Pstates)));
+    klpstates(iwe)=0.5*(sum(Pstates.*log(Pstates./P2emp))+sum(P2emp.*log(P2emp./Pstates)));
     
     %% C1c:EXTRA FITTING BETWEEN EMPIRICAL AND SIMULATED PROBABILITY OF TRANSITION
     
-    kldistControl(iwe)=KLdist(PTR2emp,PTRsim); % PTR2emp, parameter from empiricalLEiDA.mat
-    kldistAgCC(iwe)=KLdist(PTR1emp,PTRsim); % PTR1emp, parameter from empiricalLEiDA.mat
-    entropydistControl(iwe)=EntropyMarkov(PTR2emp,PTRsim); 
-    entropydistAgCC(iwe)=EntropyMarkov(PTR1emp,PTRsim);
+    kldist_pms(iwe)=KLdist(PTR2emp,PTRsim); % PTR2emp, parameter from empiricalLEiDA.mat
+    entropydist_pms(iwe)=EntropyMarkov(PTR2emp,PTRsim); 
     
     PTRsimul(iwe,:,:)=PTRsim;
     %%%
@@ -400,58 +397,12 @@ for we=WE % loops over changing coupling constant G
     iwe=iwe+1;
     
     ksdist
-    klpstatesAgCC
+    klpstates
 
 end
 %% Saving
-save optimizedhopfawake.mat WE PTRsimul Pstatessimul metastability ksdist klpstatesControl klpstatesAgCC kldistControl kldistAgCC entropydistAgCC entropydistControl fitt Coptim NSUB f_diff;
+
+save optimizedhopf_EC.mat WE PTRsimul Pstatessimul metastability ksdist klpstates kldist_pms entropydist_pms fitt Coptim NSUB f_diff;
 
 %save HopfModel_results.mat
-
-                    %%%%%%%%%%%%  D: VISUALISATION %%%%%%%%%%%%
-%% D1: PLOTTING
-
-% WE: global coupling factor
-% fitt: correlation coefficient between empirical and simulated Functional Connectivites (FC)
-% kldistawake: symmetrized K-L for the transition state
-% entropydistawake: Markov Entropy for the state. 
-% metastability: the quality of systems to temporarily persist in an existing equilibrium despite slight perturbations.
-% ksdist: Kolmogorov-Smirnov distance statistic
-% klpstatesawake: symmetrized K-L distance between empirical and simulated
-
-figure
-plot(WE,fitt,'b');
-hold on;
-plot(WE,kldistControl,'k'); %% extra
-plot(WE,entropydistControl,'r'); %%   extra
-title('Statistics for Control group model')
-xlabel('global coupling factor')
-legend('corr btw empirical and simulated FC', 'sym. K-L for the transition', 'Markov Entropy')
-saveas(gcf,'optim_fig1.png')
-
-figure
-plot(WE,metastability,'r');
-hold on;
-plot(WE,ksdist,'c');
-plot(WE,klpstatesControl,'b');
-title('Statistics for Control group model')
-xlabel('global coupling factor')
-legend('metastability', 'KS distance', 'sym. K-L distance btw empirical and simulated')
-saveas(gcf,'optim_fig2.png')
-
-% 
-% figure
-% plot(WE,fitt,'b');
-% figure
-% plot(WE,kldistControl,'r');
-% hold on;
-% plot(WE,kldistAgCC,'k');
-% figure
-% plot(WE,entropydistControl,'r');
-% hold on;
-% plot(WE,entropydistAgCC,'k');    
-% figure
-% plot(WE,klpstatesControl,'r');
-% hold on;
-% plot(WE,klpstatesAgCC,'k');   
         
