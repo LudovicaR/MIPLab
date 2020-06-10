@@ -6,6 +6,7 @@
 % Gustavo Deco
 % Edited by
 % Jakub Vohryzek February 2020
+% Ludovica Romanin March 2020
 %
 % Deco, Gustavo, et al. "Awakening: Predicting external stimulation
 % to force transitions between different brain states." Proceedings 
@@ -22,17 +23,17 @@
 %       the standard deviation of the sum of complex array composed of cos 
 %       and sin of the phase of BOLD signals.
 % - ksdist: the Kolmogorov-Smirnov distance statistic.
-% - klpstatessleep: symmetrized K-L distance between empirical and simulated in sleep state.
-% - klpstatesawake: symmetrized K-L distance between empirical and simulated in awake state.
-% - kldistsleep: symmetrized K-L for the transition state (sleep). 
-% - kldistawake: symmetrized K-L for the transition state (awake).
-% - entropydistawake: Markov Entropy for the awake state. 
-% - entropydistsleep: Markov Entropy for the sleep state. 
+% - klpstatesControl: symmetrized K-L distance between empirical and simulated in control group.
+% - klpstatesAgCC: symmetrized K-L distance between empirical and simulated in AgCC group.
+% - kldistControl: symmetrized K-L for the transition state (Control). 
+% - kldistAgCC: symmetrized K-L for the transition state (AgCC).
+% - entropydistAgCC: Markov Entropy for the AgCC group. 
+% - entropydistControl: Markov Entropy for the Control group. 
 % - fitt: 
 %       correlation coefficient between empirical and simulated Functional Connectivites (FC)
 % - Coptim: 
 %       effective connectivity for the global coupling factor, derived from 
-%       the structural connectivity 90x90 matrix.
+%       the structural connectivity 80x80 matrix.
 % - n_Subjects: the number of subjects. 
 % - f_diff: the intrinsic frequency for each region
 %
@@ -42,52 +43,51 @@
 clear all;
 
 %% Load LEiDA results
-load  empiricalLEiDA.mat;
+load  empiricalLEiDA.mat; % file with results computed in LEiDA_2Conditions.m
 
-P1emp=mean(P1emp);
-P2emp=mean(P2emp);
+% parameters from empiricalLEiDA.mat
+P1emp=mean(P1emp); % mean probability of occurrence of AgCC group
+P2emp=mean(P2emp); % mean probability of occurrence of Control group
 
 %% Load Structural Connectivity
 % The structural connectivity matrix is obtained using diffusion MRI and
 % tractography. 
-% 90: number of coupled dynamical units equal to the number of cortical and 
-% subcortical areas from the AAL (atlas) parcellation.
-load sc90.mat;
-C=sc90;
+% The number of coupled dynamical units is equal to the number of cortical 
+% and subcortical areas from the AAL (atlas) parcellation.
+load sc_dbs80.mat;
+C=sc;
 C=C/max(max(C))*0.2;
 
-%% Load data
-load data_Awake.mat;
+% remove the areas with timecourses at zero from the SC matrix
+load areas_zero.mat
+C(areas_zero,:) = [];
+C(:,areas_zero) = [];
 
-TSmax=240;
-NSUB=18;
-TR=2.08;  % Repetition Time (seconds)
-NumClusters=Number_Clusters;
+%% Load data
+
+load Controls_TCS.mat;
+% remove the areas with timecourses at zero 
+Controls_TCS(areas_zero,:,:) = [];
+
+TP=size(Controls_TCS,2);
+NSUB=size(Controls_TCS,3);
+TR=2;  % Repetition Time (seconds)
+NumClusters=Number_Clusters; % parameter stored in empiricalLEiDA.mat
 
 %% Filtering
 delt = TR;            % sampling interval
 k=2;                  % 2nd order butterworth filter
 fnq=1/(2*delt);
-flp = .04;           % lowpass frequency of filter
-fhi = fnq-0.001;           % highpass
+flp = .04;            % lowpass frequency of filter
+fhi = fnq-0.001;      % highpass
 Wn=[flp/fnq fhi/fnq]; % butterworth bandpass non-dimensional frequency
 [bfilt,afilt]=butter(k,Wn);   % construct the filter
 
-flp = .04;           % lowpass frequency of filter
-fhi = .07;           % highpass
+flp = .04;            % lowpass frequency of filter
+fhi = .07;            % highpass
 Wn=[flp/fnq fhi/fnq]; % butterworth bandpass non-dimensional frequency
 [bfilt2,afilt2]=butter(k,Wn);   % construct the filter
 clear fnq flp fhi Wn k
-
-for nsub=1:NSUB
-    [N, Tmax0]=size(X{1,nsub});
-    if Tmax0<TSmax
-        X{1,nsub}=[];
-    end
-end
-X=X(~cellfun('isempty',X));
-n_Subjects=size(X,2);
-
 
     %%%%%%%%%%%%%%% A: EXPERIMENTAL %%%%%%%%%%%%
 %%
@@ -95,19 +95,15 @@ n_Subjects=size(X,2);
 % FCD: Functional Connectivity Dynamics 
 kk=1;
 insub=1;
-TSmax=1000;
-N=90;
+
+N=size(Controls_TCS,1);
 % tril: extract lower triangular part; 
 Isubdiag = find(tril(ones(N),-1));
-Tmaxtotal=0;
-for nsub=1:n_Subjects
-    [N, Tmax0]=size(X{1,nsub});
-    Tmax=min(TSmax,Tmax0);
-    Tmaxtotal=Tmaxtotal+Tmax;
-    signaldata = X{1,nsub};
-    signaldata=signaldata(:,1:Tmax);
-    Phase_BOLD_data=zeros(N,Tmax);
-    timeseriedata=zeros(N,Tmax);
+
+for nsub=1:NSUB
+    signaldata=Controls_TCS(:,:,nsub);
+    Phase_BOLD_data=zeros(N,TP);
+    timeseriedata = zeros(N,TP);
      %% A1a: ORDER PARAMETER and iFC
 
     for seed=1:N
@@ -117,7 +113,7 @@ for nsub=1:n_Subjects
         timeseriedata(seed,:) = filtfilt(bfilt2,afilt2,x);    % zero phase filter the data
         Phase_BOLD_data(seed,:) = angle(hilbert(timeseriedata(seed,:)));
     end
-    T=10:Tmax-10;
+    T=10:TP-10;
     for t=T
         kudata=sum(complex(cos(Phase_BOLD_data(:,t)),sin(Phase_BOLD_data(:,t))))/N;
         syncdata(t-9)=abs(kudata);
@@ -141,9 +137,10 @@ for nsub=1:n_Subjects
         end
     end
     
-    for t=1:Tmax
+    for t=1:TP
         for n=1:N
             for p=1:N
+                % iFC: Instantaneous Functional Connectivity
                 iFC(t,n,p)=cos(Phase_BOLD_data(n,t)-Phase_BOLD_data(p,t));
             end
         end
@@ -155,16 +152,14 @@ metastabilitydata=mean(metastabilitydata2);
 
 %% A2: SPECTRAL ANALYSIS
 % Extracting peak of data power spectra for determining omega (Hopf)
-for nsub=1:n_Subjects
+for nsub=1:NSUB
     clear PowSpect PowSpect2;
-    [N, Tmax0]=size(X{1,nsub});
+    N = size(Controls_TCS, 1);
+    T = size(Controls_TCS, 2);
     Isubdiag = find(tril(ones(N),-1));
-    Tmax=min(TSmax,Tmax0);
-    TT=Tmax;
-    Ts = TT*TR;
-    freq = (0:TT/2-1)/Ts;
-    signaldata = X{1,nsub};
-    signaldata=signaldata(:,1:Tmax);
+    Ts = T*TR;
+    freq = (0:T/2-1)/Ts;
+    signaldata=Controls_TCS(:,:,nsub);
     FCemp2(nsub,:,:)=corrcoef(signaldata');
     
     %%%%
@@ -173,7 +168,6 @@ for nsub=1:n_Subjects
     [aux maxfreq]=min(abs(freq-0.07)); % max frequency of the cut-ff
     nfreqs=length(freq);
     
-    
     for seed=1:N
         % demean: function of the project, removes the mean value 
         % detrend: matlab tool, removes the best straight-line fit linear trend from the data
@@ -181,10 +175,10 @@ for nsub=1:n_Subjects
         ts =zscore(filtfilt(bfilt2,afilt2,x));
         % fft: compute the Discrete Fourier Transform 
         pw = abs(fft(ts));
-        PowSpect(:,seed,insub) = pw(1:floor(TT/2)).^2/(TT/TR);
+        PowSpect(:,seed,insub) = pw(1:floor(T/2)).^2/(T/TR);
         ts2 =zscore(filtfilt(bfilt,afilt,x));
         pw2 = abs(fft(ts2));
-        PowSpect2(:,seed,insub) = pw2(1:floor(TT/2)).^2/(TT/TR);
+        PowSpect2(:,seed,insub) = pw2(1:floor(T/2)).^2/(T/TR);
     end
     insub=insub+1;
 end
@@ -212,7 +206,7 @@ omega = repmat(2*pi*f_diff',1,2); % multiplying by 2pi and setting two column fo
 omega(:,1) = -omega(:,1); % setting the first column negative as omega is negative in x-eqn
 
 dt=0.1*TR/2;
-Tmax=TSmax*n_Subjects;
+Tmax=TP*NSUB;
 sig=0.02; % standard deviation of the noise term
 dsig = sqrt(dt)*sig; % to avoid sqrt(dt) at each time step
 
@@ -384,18 +378,17 @@ for we=WE % loops over changing coupling constant G
                           %%%%%%%%%%%%  C: COMPARISON %%%%%%%%%%%%
     %% C1a: PROBABILISTIC STATE SPACE
 
-    [PTRsim,Pstates]=LEiDA_fix_clusterAwakening(xs',NumClusters,Vemp,TR);   
+    [PTRsim,Pstates]=LEiDA_fix_clusterAwakening(xs',NumClusters,Vemp,TR);  % Vemp, parameter from empiricalLEiDA.mat
+    
+    
     
     %% C1b: KL-DISTANCE BETWEEN EMPIRICAL AND SIMULATED PROBABILITY OF OCCURENCE
-    klpstatessleep(iwe)=0.5*(sum(Pstates.*log(Pstates./P2emp))+sum(P2emp.*log(P2emp./Pstates)));
-    klpstatesawake(iwe)=0.5*(sum(Pstates.*log(Pstates./P1emp))+sum(P1emp.*log(P1emp./Pstates)));
+    klpstates(iwe)=0.5*(sum(Pstates.*log(Pstates./P2emp))+sum(P2emp.*log(P2emp./Pstates)));
     
     %% C1c:EXTRA FITTING BETWEEN EMPIRICAL AND SIMULATED PROBABILITY OF TRANSITION
     
-    kldistsleep(iwe)=KLdist(PTR2emp,PTRsim);
-    kldistawake(iwe)=KLdist(PTR1emp,PTRsim);
-    entropydistsleep(iwe)=EntropyMarkov(PTR2emp,PTRsim);
-    entropydistawake(iwe)=EntropyMarkov(PTR1emp,PTRsim);
+    kldist_pms(iwe)=KLdist(PTR2emp,PTRsim); % PTR2emp, parameter from empiricalLEiDA.mat
+    entropydist_pms(iwe)=EntropyMarkov(PTR2emp,PTRsim); 
     
     PTRsimul(iwe,:,:)=PTRsim;
     %%%
@@ -404,40 +397,12 @@ for we=WE % loops over changing coupling constant G
     iwe=iwe+1;
     
     ksdist
-    klpstatesawake
+    klpstates
 
 end
 %% Saving
-save optimizedhopfawake.mat WE PTRsimul Pstatessimul metastability ksdist klpstatessleep klpstatesawake kldistsleep kldistawake entropydistawake entropydistsleep fitt Coptim n_Subjects f_diff;
 
-                    %%%%%%%%%%%%  D: VISUALISATION %%%%%%%%%%%%
-%% D1: PLOTTING
+save optimizedhopf_EC.mat WE PTRsimul Pstatessimul metastability ksdist klpstates kldist_pms entropydist_pms fitt Coptim NSUB f_diff;
 
-figure
-plot(WE,fitt,'b');
-hold on;
-plot(WE,kldistawake,'k'); %% extra
-plot(WE,entropydistawake,'k'); %%   extra
-figure
-plot(WE,metastability,'r');
-hold on;
-plot(WE,ksdist,'c');
-plot(WE,klpstatesawake,'k');
-plot(WE,klpstatessleep,'b');
-
-% 
-% figure
-% plot(WE,fitt,'b');
-% figure
-% plot(WE,kldistsleep,'r');
-% hold on;
-% plot(WE,kldistawake,'k');
-% figure
-% plot(WE,entropydistsleep,'r');
-% hold on;
-% plot(WE,entropydistawake,'k');    
-% figure
-% plot(WE,klpstatessleep,'r');
-% hold on;
-% plot(WE,klpstatesawake,'k');   
+%save HopfModel_results.mat
         

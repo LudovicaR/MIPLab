@@ -1,11 +1,11 @@
-function plot_nodes_in_cortex (V)
+function plot_nodes_in_cortex (V, view_)
 
 % PLOT NODES
 hold on
 
 % % PLOT CORTEX
 % 
-cortex.path='/Users/jakub/Matlab/Collaboration_Cabral/LEiDA/LEiDA-Vohryzek_PSILODEP/Functions/MNI152_T1_2mm_brain_mask.nii';
+cortex.path='./MNI152_T1_2mm_brain_mask.nii';
 cortex.pial=mapPial2(cortex.path);
 cortex.color=[0.9 0.9 0.9];
 cortex.transparency=0.1; % To view only opaque cortex =1;
@@ -26,6 +26,7 @@ V=round(V*10)/10;  % round small values close to zero
 ori=[65 45.5 35];
 
 load aal_cog.txt aal_cog
+
 scale=5.5;
 MNI_coord=scale*(aal_cog/10);
 clear aal_cog
@@ -76,12 +77,23 @@ set(gca,'CameraViewAngle', 6);
 set(gca, 'Projection', 'orthographic')
 set(gca, 'CameraTarget', [51 68 90])
 
+if view_ == 0
+    view([-90 90]) % top
+end
+
+if view_ == 1
+    view([-180 0]) % L sideways
+end
+
+if view_ == 2
+    view([90 0]) % front
+end
 
 %view([-90 60])
 %view([90 -90]) % ventral
-view([-90 90]) % top
+%view([-90 90]) % top
 %view([0 0]) % R sideways
-% view([-180 0]) % L sideways
+%view([-180 0]) % L sideways
 % view([45 20]) % perspective
 %view([90 0]) % front
 
