@@ -3,13 +3,15 @@ clear all;
 %load sc_dbs80.mat;
 %C=sc;
 
-load meanSC_56HC_Desikan.mat;
-C=meanSC;
+load meanSC_56HC_Desikan.mat
+SC_56 = meanSC;
+load meanSC_56HC_Desikan_woCC.mat
+SC_woCC = meanSC;
 
 % remove the areas with timecourses at zero from the SC matrix
 load areas_zero.mat
-C(areas_zero,:) = [];
-C(:,areas_zero) = [];
+SC_56(areas_zero,:) = [];
+SC_56(:,areas_zero) = [];
 
 load  optimizedhopfawake_56HC.mat;
 load empiricalLEiDA.mat;
@@ -43,16 +45,18 @@ xline(we_optim_ks,'--r');
 xlabel('global coupling factor')
 legend('Pearson correlation', 'G_{opt}, KL', 'G_{opt}, KS', 'FontSize', 11)
 
-%% plot FC matrices
+%% SC matrices plot
 figure
 subplot(1,2,1)
-imagesc(FC_simul)
-title('simulated')
-hold on
+imagesc(log(SC_56)); 
+colorbar
+title('healthy SC')
+hold on 
 
 subplot(1,2,2)
-imagesc(FCemp)
-title('empirical')
+imagesc(log(SC_woCC));
+colorbar
+title('lesioned SC (w/o CC)')
 hold on
 
 %% FCD plots 

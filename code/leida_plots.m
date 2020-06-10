@@ -1,6 +1,6 @@
 clear all; 
 load LEiDA_results.mat;
-
+ 
 %% For plots, put areas removed back to zero
 V = Vemp;
 
@@ -80,19 +80,19 @@ states_list = [3, 9, 10];
 for c=1:3
     subplot(3,3,c) 
     plot_nodes_in_cortex(V(states_list(c),1:length(labels)),0)
-    title({['State #' num2str(states_list(c))] [ ] ['dorsal']},'FontSize', 12) % axial plane
+    title({['State #' num2str(states_list(c))] [ ] ['axial']},'FontSize', 12) % dorsal
 end
 
 for c=4:6
     subplot(3,3,c)
     plot_nodes_in_cortex(V(states_list(c-3),1:length(labels)),1)
-    title({['lateral (L)']},'FontSize', 12)  % sagittal plane
+    title({['sagittal (L)']},'FontSize', 12)  % lateral (L)
 end
 
 for c=7:9
     subplot(3,3,c)
     plot_nodes_in_cortex(V(states_list(c-6),1:length(labels)),2)
-    title({['front']},'FontSize', 12) % coronal plane
+    title({['coronal']},'FontSize', 12) % front
 end
 
 %% test significance of complete vs. partial AgCC
@@ -101,16 +101,27 @@ end
 idx_partial = [1,2,10,11,12];
 idx_complete = [3,4,5,6,7,8,9,13];
 
+Pval_agcc_grps=zeros(1,k);
+
+for c=1:rangeK(k)
+        % Compare Probabilities of Occurence
+        prt=squeeze(Pemp_partial(:,c));  % Vector containing Prob of c in AgCC_complete
+        cmp=squeeze(Pemp_complete(:,c));  % Vector containing Prob of c in AgCC_partial
+        stats=permutation_htest2_np([prt',cmp'],[ones(1,numel(prt)) 2*ones(1,numel(cmp))],1000,0.05,'ttest');
+        Pval_agcc_grps(c)=min(stats.pvals);
+end
+
 for c=1:K
     subplot(1,K,c)
-    Group1=squeeze(P(idx_partial,k,ind_sort(c))); % partial AgCC
-    Group2=squeeze(P(idx_complete,k,ind_sort(c))); % complete AgCC
+    Group1=squeeze(Pemp_partial(:,c)); % partial AgCC
+    Group2=squeeze(Pemp_complete(:,c)); % complete AgCC
     bar([mean(Group1) mean(Group2)],'EdgeColor','w','FaceColor',[.5 .5 .5])
+    title({['State #' num2str(c)]}, 'FontSize', 12)
     hold on
     % Error bar containing the standard error of the mean
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'prt', 'cmp'},'FontSize', 12)
-    if P_pval(k,ind_sort(c))<0.05
+    if Pval_agcc_grps(K)<0.05
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
     if c==1
@@ -118,9 +129,3 @@ for c=1:K
     end
     box off
 end
-
-% ttest: control vs. AgCC
-[H_ctrl,P_ctrl, CI_ctrl, STATS_ctrl] = ttest2(P1emp, P2emp);
-
-% ttest: partial vs. complete AgCC
-[H_agcc_grp,P_agcc_grp, CI_agcc_grp, STATS_agcc_grp] = ttest2(Pemp_complete, Pemp_partial);

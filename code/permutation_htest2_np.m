@@ -87,6 +87,14 @@ switch htest
             tvals(t,:)=STATS;
             diffs(t,:)      = mean(data(t,g1))-mean(data(t,g2));
         end
+        
+    case 'one_sample_ttest' %--> one sample ttest(data, valore_sim)
+        for t=1:NC
+            [H,P,CI,STATS] = ttest(data(t,g1)',data(t,g2)','alpha',pthr);
+            tvals(t,:)     = STATS.tstat;
+            diffs(t,:)      = mean(data(t,g1))-mean(data(t,g2));
+        end
+        
     otherwise
         error('\n-------------------------------\n\nHypothesis test %s not recognized. \n\n-------------------------------\n',htest)
 end
