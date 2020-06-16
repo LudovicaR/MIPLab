@@ -121,7 +121,7 @@ for c=1:K
     % Error bar containing the standard error of the mean
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'prt', 'cmp'},'FontSize', 12)
-    if Pval_agcc_grps(K)<0.05
+    if Pval_agcc_grps(c)<0.05
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
     if c==1

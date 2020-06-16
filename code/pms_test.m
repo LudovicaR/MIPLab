@@ -1,5 +1,5 @@
 clear all;
-load meanSC_56HC_Desikan_woCC.mat;
+load meanSC_56HC_Desikan.mat;
 C=meanSC;
 
 % remove the areas with timecourses at zero from the SC matrix
@@ -7,7 +7,7 @@ load areas_zero.mat
 C(areas_zero,:) = [];
 C(:,areas_zero) = [];
 
-load  optimizedhopfawake_56HC_woCC.mat;
+load  optimizedhopfawake_56HC.mat;
 load empiricalLEiDA.mat P1emp P2emp PTR1emp PTR2emp;
 
 % Optimal G for KL
@@ -22,16 +22,24 @@ we_optim_ks = WE(I1);
 
 K = 10;
 Pval_ctrl = zeros(1,K);
+H_ctrl = zeros(1,K);
 Pval_agcc = zeros(1,K);
+H_agcc = zeros(1,K);
 
+% for c=1:K
+%     stats=permutation_htest2_np([P2emp(:,c)',Pstatessimul(I,c)'],[ones(1,numel(P2emp(:,c))) 2*ones(1,numel(Pstatessimul(I,c)))],1000,0.05,'one_sample_ttest');
+%     Pval_ctrl(c)=min(stats.pvals);
+% 
+%     stats=permutation_htest2_np([P1emp(:,c)',Pstatessimul(I,c)'],[ones(1,numel(P1emp(:,c))) 2*ones(1,numel(Pstatessimul(I,c)))],1000,0.05,'one_sample_ttest');
+%     Pval_agcc(c)=min(stats.pvals);
+% end
 
 for c=1:K
-    stats=permutation_htest2_np([P2emp(:,c)',Pstatessimul(I,c)'],[ones(1,numel(P2emp(:,c))) 2*ones(1,numel(Pstatessimul(I,c)))],1000,0.05,'one_sample_ttest');
-    Pval_ctrl(c)=min(stats.pvals);
+    [H_ctrl(c), Pval_ctrl(c)]=ttest(P2emp(:,c), Pstatessimul(I,c), 'alpha', 0.05/10);
 
-    stats=permutation_htest2_np([P1emp(:,c)',Pstatessimul(I,c)'],[ones(1,numel(P1emp(:,c))) 2*ones(1,numel(Pstatessimul(I,c)))],1000,0.05,'one_sample_ttest');
-    Pval_agcc(c)=min(stats.pvals);
+    [H_agcc(c), Pval_agcc(c)]=ttest(P1emp(:,c), Pstatessimul(I,c), 'alpha', 0.05/10);
 end
+
 
 %% plot PMS, simulated and empirical
 
@@ -51,7 +59,7 @@ for c=1:K
     % Error bar containing the standard error of the mean
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'sim', 'emp'},'FontSize', 12)
-    if Pval_ctrl(K)<0.05
+    if Pval_ctrl(c)<0.05
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
     if c==1
@@ -76,7 +84,7 @@ for c=1:K
     % Error bar containing the standard error of the mean
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'sim', 'emp'},'FontSize', 12)
-    if Pval_agcc(K)<0.05
+    if Pval_agcc(c)<0.05
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
     if c==1
