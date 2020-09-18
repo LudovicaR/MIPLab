@@ -14,6 +14,9 @@ end
 
 N_areas = size(All_Subjs_TCS,1);
 
+% put labels back at 80
+labels = 1:80;
+
 %% plot of LEiDA results: FC connections, FC matrices, Probabilites and Lifetimes
 disp('%%% PLOTS %%%%')
 
@@ -94,6 +97,28 @@ for c=7:9
     plot_nodes_in_cortex(V(states_list(c-6),1:length(labels)),2)
     title({['coronal']},'FontSize', 12) % front
 end
+
+%% plot state 9 to understand region involved 
+
+figure
+colormap(jet)
+
+V_nine = V(9,1:length(labels));
+
+subplot(3,3,1) 
+plot_nodes_in_cortex(V(9,1:length(labels)),0)
+title({['axial']},'FontSize', 12) % dorsal
+
+subplot(3,3,2)
+plot_nodes_in_cortex(V(9,1:length(labels)),1)
+title({['State #' num2str(9)] [ ] ['sagittal (L)']},'FontSize', 12)  % lateral (L)
+
+subplot(3,3,3)
+plot_nodes_in_cortex(V(9,1:length(labels)),2)
+title({['coronal']},'FontSize', 12) % front
+
+%% number of labels of the regions involved in state 9
+labels(find(V_nine>0))
 
 %% test significance of complete vs. partial AgCC
 
