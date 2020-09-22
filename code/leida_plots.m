@@ -1,6 +1,6 @@
 clear all; 
 load LEiDA_results.mat;
- 
+
 %% For plots, put areas removed back to zero
 V = Vemp;
 
@@ -8,8 +8,8 @@ V = Vemp;
 zero_vec = zeros(size(All_Subjs_TCS(1,:,:)));
 for i=1:length(areas_zero)
     area = areas_zero(i);
-    All_Subjs_TCS = cat(1,All_Subjs_TCS(1:area,:,:),zero_vec,All_Subjs_TCS(area+1:end,:,:));
-    V = cat(2,V(:,1:area),zeros(1,size(V,1))',V(:,area+1:end));
+    All_Subjs_TCS = cat(1,All_Subjs_TCS(1:area-1,:,:),zero_vec,All_Subjs_TCS(area:end,:,:));
+    V = cat(2,V(:,1:area-1),zeros(1,size(V,1))',V(:,area:end));
 end
 
 N_areas = size(All_Subjs_TCS,1);
@@ -50,7 +50,7 @@ for c=1:K
     % Error bar containing the standard error of the mean
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'AgCC', 'Controls'},'FontSize', 12)
-    if P_pval(k,ind_sort(c))<0.05
+    if P_pval(k,ind_sort(c))<0.05/K
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
     if c==1
@@ -65,7 +65,7 @@ for c=1:K
     hold on
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'AgCC', 'Controls'},'FontSize', 12)
-    if LT_pval(k,ind_sort(c))<0.05
+    if LT_pval(k,ind_sort(c))<0.05/K
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
     if c==1
@@ -98,27 +98,29 @@ for c=7:9
     title({['coronal']},'FontSize', 12) % front
 end
 
-%% plot state 9 to understand region involved 
+%% plot significant state to detect regions involved 
+
+state = 9;
 
 figure
 colormap(jet)
 
-V_nine = V(9,1:length(labels));
+V_state = V(state,1:length(labels));
 
 subplot(3,3,1) 
-plot_nodes_in_cortex(V(9,1:length(labels)),0)
+plot_nodes_in_cortex(V(state,1:length(labels)),0)
 title({['axial']},'FontSize', 12) % dorsal
 
 subplot(3,3,2)
-plot_nodes_in_cortex(V(9,1:length(labels)),1)
-title({['State #' num2str(9)] [ ] ['sagittal (L)']},'FontSize', 12)  % lateral (L)
+plot_nodes_in_cortex(V(state,1:length(labels)),1)
+title({['State #' num2str(state)] [ ] ['sagittal (L)']},'FontSize', 12)  % lateral (L)
 
 subplot(3,3,3)
-plot_nodes_in_cortex(V(9,1:length(labels)),2)
+plot_nodes_in_cortex(V(state,1:length(labels)),2)
 title({['coronal']},'FontSize', 12) % front
 
 %% number of labels of the regions involved in state 9
-labels(find(V_nine>0))
+labels(find(V_state>0))
 
 %% test significance of complete vs. partial AgCC
 
@@ -146,7 +148,7 @@ for c=1:K
     % Error bar containing the standard error of the mean
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'prt', 'cmp'},'FontSize', 12)
-    if Pval_agcc_grps(c)<0.05
+    if Pval_agcc_grps(c)<0.05/K
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
     if c==1
