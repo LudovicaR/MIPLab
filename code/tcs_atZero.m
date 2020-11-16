@@ -5,16 +5,20 @@
 clear all;
 
 %load data matrices for the two groups
-load AgCC_TCS_new.mat
-load Controls_TCS.mat
+%load AgCC_TCS_new.mat
+%load Controls_TCS.mat
+
+% Schaefer-800
+load AgCC_TCS_800.mat
+load Controls_TCS_800.mat
 
 %parameters
-N_areas=80; % this is the number of brain regions / parcellations
-TP=200; % volumes of the fMRIs
+N_areas=size(Controls_TCS,1); % this is the number of brain regions / parcellations
+TP=size(Controls_TCS,2); % volumes of the fMRIs
 NSUB_Controls=size(Controls_TCS,3);
 NSUB_AgCC=size(AgCC_TCS,3);
 %create unique variable with 2 groups concatenated
-All_Subjs_TCS=zeros(80,200,NSUB_Controls+NSUB_AgCC);
+All_Subjs_TCS=zeros(N_areas,TP,NSUB_Controls+NSUB_AgCC);
 All_Subjs_TCS(:,:,1:NSUB_AgCC)=AgCC_TCS;%from 1 to 13
 All_Subjs_TCS(:,:,NSUB_AgCC+1:NSUB_AgCC+NSUB_Controls)=Controls_TCS;%from 14 to 41
 NSUB=size(All_Subjs_TCS,3);
@@ -73,6 +77,6 @@ areas_zero = unique(areas_zero.','rows').';
 labels(areas_zero) = [];
 
 % save the structure in a .txt file
-writetable(struct2table(timeZero), 'timecourses_zero.txt')
-save areas_zero.mat areas_zero labels
+writetable(struct2table(timeZero), 'timecourses_zero_800.txt')
+save areas_zero_800.mat areas_zero labels
 

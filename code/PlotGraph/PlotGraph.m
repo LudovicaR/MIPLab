@@ -4,7 +4,7 @@
 subcortical = 1; %include subcortical areas 
 saturate = 1;
 
-load(strcat(pwd, '/LEiDA_results_K_23.mat'));
+load('../../results/LEiDA_results_K_16_N800.mat');
 
 %% For plots, put areas removed back to zero
 V = Vemp;
@@ -20,10 +20,10 @@ end
 n_ROI = size(All_Subjs_TCS,1);
 
 % put labels back at 80
-labels = 1:80;
+labels = 1:819;
 
 %% choose state to plot
-state = 23;
+state = 16;
 CC2 = V(state,1:n_ROI);
 
 %% Atlas + Selection
@@ -33,7 +33,7 @@ CM=zeros(n_ROI,n_ROI);
 %CodeBookpath=which(strcat(parc{parcellation},'_subc_codebook.mat'));
 
 
-CodeBookpath=strcat(pwd,'/PlotGraph/dbs80symm_2mm_codebook.mat');
+CodeBookpath=strcat(pwd,'/Schaefer800_subc_codebook.mat');
 CodeBook=load(CodeBookpath);
 CodeBook=CodeBook.codeBook;
 
@@ -67,7 +67,7 @@ CC=abs(CC2)*10;
 T_conn=0.9;
 Factor_SphereSize=max(CC);
 Factor_Col=1;
-Exp_Sphere=2;
+Exp_Sphere=1;
 
 Colormap_edges='jet';
 Colormap_nodes='jet';
@@ -82,18 +82,18 @@ View=1;
 PlotBrainGraph(CM,CC,CC2,CodeBook,T_conn,Factor_SphereSize,...
     Factor_Col,Exp_Sphere,View,Colormap_nodes,Colormap_edges,Gamma,...
     LinearWeight,CA)
-saveas(gcf, strcat('figures/state',int2str(state),'_axial.png'));
+saveas(gcf, strcat('../../figures/state',int2str(state),'_axial.png'));
 
 View=2;
 PlotBrainGraph(CM,CC,CC2,CodeBook,T_conn,Factor_SphereSize,...
     Factor_Col,Exp_Sphere,View,Colormap_nodes,Colormap_edges,Gamma,...
     LinearWeight,CA)
-saveas(gcf, strcat('figures/state',int2str(state),'_sagittal.png'));
+saveas(gcf, strcat('../../figures/state',int2str(state),'_sagittal.png'));
 
 View=3;
 PlotBrainGraph(CM,CC,CC2,CodeBook,T_conn,Factor_SphereSize,...
     Factor_Col,Exp_Sphere,View,Colormap_nodes,Colormap_edges,Gamma,...
     LinearWeight,CA)
-saveas(gcf, strcat('figures/state',int2str(state),'_coronal.png'));
+saveas(gcf, strcat('../../figures/state',int2str(state),'_coronal.png'));
 
 hold on
