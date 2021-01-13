@@ -13,22 +13,25 @@
 % of the National Academy of Sciences 116.36 (2019): 18088-18097.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-clear all;
+clear all;clc;
+
+addpath('functions/')
+
 %% Loading Files
-load  empiricalLEiDA.mat;
+load  ../results/leida/empiricalLEiDA_K_10_DK.mat;
 P1emp=mean(P1emp);
 P2emp=mean(P2emp);
 
-load  optimizedhopfawake.mat;
+load  ../results/hopf_model/optimizedhopf_K_10_DK_EC.mat;
 
 %% Perturbation Protocol
 PERTURB=0:0.01:0.1;  %% This is synchronisation protocol
 %PERTURB=0:-0.025:-0.4; %% This is for the noise Protocol
 %% Parameters
-load Controls_TCS.mat
+load ../data/TCS/Controls_TCS.mat
 
 % remove the areas with timecourses at zero 
-load areas_zero.mat
+load ../data/TCS/areas_zero.mat
 Controls_TCS(areas_zero,:,:) = [];
 
 we=0.09;

@@ -11,17 +11,40 @@
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-clear all;
+clear all;clc;
 
-%load data matrices for the two groups
-load AgCC_TCS_new.mat
-load Controls_TCS.mat
+addpath('functions/') 
+
+%load data matrices for the two groups 
+% (make sure you take datasets parcellated with same atlas)
+
+% Load Control data 
+disp('Load Control data')
+[file,path] = uigetfile(['../data/TCS/Controls_TCS','*.mat']);
+if isequal(file,0)
+   disp('User selected Cancel');
+else
+   disp(['User selected ', fullfile(path,file)]);
+end
+ 
+load(['../data/TCS/',file]);
+
+% Load AgCC data 
+disp('Load AgCC data')
+[file,path] = uigetfile(['../data/TCS/AgCC_TCS','*.mat']);
+if isequal(file,0)
+   disp('User selected Cancel');
+else
+   disp(['User selected ', fullfile(path,file)]);
+end
+ 
+load(['../data/TCS/',file]);
 
 %%
 
 %parameters
-N_areas=80;
-TP=200;
+N_areas=size(Controls_TCS, 1);
+TP=size(Controls_TCS, 2);
 NSUB_Controls=size(Controls_TCS,3);
 NSUB_AgCC=size(AgCC_TCS,3);
 %create unique variable with 2 groups concatenated
@@ -33,8 +56,14 @@ Ttotal=TP*NSUB;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Preprocessing - Remove areas with timecourses at zero
- 
-load areas_zero.mat
+
+% load file containing the index of regions with timecourses at zero
+% this is used to remove these regions from the subsequent analysis 
+if size(Controls_TCS, 1) < 200
+    load ../data/TCS/areas_zero.mat;
+else
+    load ../data/TCS/areas_zero_246.mat
+end
 
 All_Subjs_TCS(areas_zero,:,:) = [];
 
@@ -100,11 +129,11 @@ for s=1:NSUB
         elseif mean(V1>0)==.5 && sum(V1(V1>0))>-sum(V1(V1<0))
             V1=-V1;
         end
-        if mean(V2>0)>.5
-            V2=-V2;
-        elseif mean(V2>0)==.5 && sum(V2(V2>0))>-sum(V2(V2<0))
-            V2=-V2;
-        end
+%         if mean(V2>0)>.5
+%             V2=-V2;
+%         elseif mean(V2>0)==.5 && sum(V2(V2>0))>-sum(V2(V2<0))
+%             V2=-V2;
+%         end
         
         % Save V1 from all frames in all fMRI sessions in Leading eig
         t_all=t_all+1; % Update time
@@ -126,10 +155,10 @@ disp('Clustering the eigenvectors into')
 % There is no fixed number of states the brain can display
 % Extending depending on the hypothesis of each work
 
-maxk=10; %%10;
+maxk=20; %%10;
 mink=2; %%2;
 rangeK=mink:maxk;
-
+    
 % Set the parameters for Kmeans clustering
 Kmeans_results=cell(size(rangeK));
 for k=1:length(rangeK)
@@ -139,7 +168,7 @@ for k=1:length(rangeK)
     Kmeans_results{k}.C=C;       % Cluster centroids (FC patterns)
     Kmeans_results{k}.SUMD=SUMD; % Within-cluster sums of point-to-centroid distances
     Kmeans_results{k}.D=D;       % Distance from each point to every centroid
-    [ss,H]=silhouette(Leading_Eig,IDX);
+    ss =silhouette(Leading_Eig,IDX);
     sil(k)=mean(ss);
 end
 
@@ -206,7 +235,7 @@ for k=1:length(rangeK)
         stats=permutation_htest2_np([a',b'],[ones(1,numel(a)) 2*ones(1,numel(b))],1000,0.05,'ttest');
         P_pval(k,c)=min(stats.pvals);
         
-        % Comapre Lifetimes
+        % Compare Lifetimes
         a=squeeze(LT(1:NSUB_AgCC,k,c));  % Vector containing Prob of c in Baselineline
         b=squeeze(LT(NSUB_AgCC+1:NSUB_AgCC+NSUB_Controls,k,c));  % Vector containing Prob of c in Task
         stats=permutation_htest2_np([a',b'],[ones(1,numel(a)) 2*ones(1,numel(b))],1000,0.05,'ttest');
@@ -342,5 +371,7 @@ Pemp_complete=squeeze(P(idx_complete,k,ind_sort));
 
 %% Saving
 
-save LEiDA_results.mat
-save empiricalLEiDA.mat Vemp P1emp P2emp LT1emp LT2emp PTR1emp PTR2emp Number_Clusters;
+% change name with K_ to indicate the number of clusters 
+% and _DK, _BN, or _SCH to indicate the atlas used 
+save ../results/leida/LEiDA_results_.mat
+save ../results/leida/empiricalLEiDA_.mat Vemp P1emp P2emp LT1emp LT2emp PTR1emp PTR2emp Number_Clusters;

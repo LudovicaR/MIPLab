@@ -12,7 +12,7 @@
 % to force transitions between different brain states." Proceedings 
 % of the National Academy of Sciences 116.36 (2019): 18088-18097.
 %
-% OUTPUTs: 
+% OUTPUTs:
 % - optimizedhopfawake.mat: mat file with all the outputs listed below.
 % - WE: global coupling factor (G)
 % - PTRsimul: 
@@ -23,24 +23,38 @@
 %       the standard deviation of the sum of complex array composed of cos 
 %       and sin of the phase of BOLD signals.
 % - ksdist: the Kolmogorov-Smirnov distance statistic.
-% - klpstates: symmetrized K-L distance between empirical and simulated in control group.
+% - klpstates: symmetrized K-L distance between empirical and simulated
+% data
 % - kldist_pms: symmetrized K-L for the transition state  
 % - entropydist_pms: Markov Entropy 
 % - fitt: 
 %       correlation coefficient between empirical and simulated Functional Connectivites (FC)
-% - n_Subjects: the number of subjects. 
+% - NSUB: the number of subjects. 
 % - f_diff: the intrinsic frequency for each region
+% - FCsim: functional connectivity matrix, determined from each simulated
+% BOLD signal (one for each parameter a tested)
+% - FCemp: functional connectivity matric, from the empirical BOLD signals
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% 
 clear all;
 
+addpath('functions/')
+
+tic
+
 %% Load LEiDA results
-load  empiricalLEiDA.mat; % file with results computed in LEiDA_2Conditions.m
+
+% load file with LEiDA results
+% load empiricalLEiDA_*.mat file
+load  ../results/leida/empiricalLEiDA_.mat; 
 
 % parameters from empiricalLEiDA.mat
 P2emp=mean(P2emp); % mean probability of occurrence of the Control group
+
+%% Load empirical data 
+load ../data/TCS/Controls_TCS.mat;
 
 %% Load Structural Connectivity
 % The structural connectivity matrix is obtained using diffusion MRI and
@@ -48,22 +62,28 @@ P2emp=mean(P2emp); % mean probability of occurrence of the Control group
 % The number of coupled dynamical units is equal to the number of cortical 
 % and subcortical areas from the AAL (atlas) parcellation.
 
-%load sc_dbs80.mat;
-load meanSC_56HC_Desikan_woCC.mat;
+% choose SC matrix to test for the model simulation
+load ../data/meanSCs/meanSC_56HC_Desikan.mat; 
 C=meanSC;
-C=C/max(max(C))*0.2;
+C=C/max(max(C))*0.2; 
 
-% remove the areas with timecourses at zero from the SC matrix
-load areas_zero.mat
+%% remove the areas with timecourses at zero from the SC matrix
+
+% load file containing the index of regions with timecourses at zero
+% this is used to remove these regions from the subsequent analysis 
+if size(Controls_TCS, 1) < 200
+    load ../data/TCS/areas_zero.mat;
+else
+    load ../data/TCS/areas_zero_246.mat
+end
+
 C(areas_zero,:) = [];
 C(:,areas_zero) = [];
 
-%% Load data
-
-load Controls_TCS.mat;
 % remove the areas with timecourses at zero 
 Controls_TCS(areas_zero,:,:) = [];
 
+%% Initialize parameters
 TP=size(Controls_TCS,2);
 NSUB=size(Controls_TCS,3);
 TR=2;  % Repetition Time (seconds)
@@ -95,6 +115,7 @@ N=size(Controls_TCS,1);
 % tril: extract lower triangular part; 
 Isubdiag = find(tril(ones(N),-1));
 
+% Empirical FCD matrix
 phfcddata_emp = zeros(1, (TP-21)*NSUB*((TP-21-1)/2));
 
 for nsub=1:NSUB
@@ -207,13 +228,14 @@ omega(:,1) = -omega(:,1); % setting the first column negative as omega is negati
 
 dt=0.1*TR/2;
 Tmax=TP*NSUB;
-sig=0.02; % standard deviation of the noise term
+sig=0.02; % standard deviation of the noise term (corresponds to beta in the equation)
 dsig = sqrt(dt)*sig; % to avoid sqrt(dt) at each time step
 
                   %%%%%%%%%%%% B: SIMULATION %%%%%%%%%%%%
 %%
 iwe=1; % count for the global wieght iteration
 WE=0:0.01:1; % 0:0.005:0.15;  %% Global Coupling Factor G
+
 a=zeros(N,2); % a bifurcation parameter if = 0 => at the bifurcation
 
 NWE=length(WE);
@@ -223,6 +245,8 @@ Pstatessimul=zeros(NWE,NumClusters);
 pat_size = N*(N-1) + (TP-21) - 2;
 
 phfcd_sim = zeros(NWE, 1, pat_size*(pat_size-1)/2);
+
+FCsim = zeros(NWE, N, N);
 
 for we=WE % loops over changing coupling constant G
     %% B2: FINAL SIMULATION
@@ -254,6 +278,7 @@ for we=WE % loops over changing coupling constant G
     %% B2c: COMPUTE COMPARISON BETWEEN STATIC EMPIRICAL AND SIMULATED  FC
 
     FC_simul=corrcoef(xs(1:nn,:));
+    FCsim(iwe, :, :) = FC_simul; 
     cc = corrcoef(atanh(FCemp(Isubdiag)),atanh(FC_simul(Isubdiag)));
     fitt(iwe)=cc(2);
     %% B2d: COMPUTE: HILBERT TRANSFORM
@@ -339,9 +364,11 @@ for we=WE % loops over changing coupling constant G
     klpstates
 
 end
+
 %% Saving
-save optimizedhopf_56HC_woCC.mat WE PTRsimul Pstatessimul metastability ksdist klpstates kldist_pms entropydist_pms fitt NSUB f_diff phfcddata_emp;
+save ../results/hopf_model/optimizedhopf_K_.mat WE PTRsimul Pstatessimul metastability ksdist klpstates kldist_pms entropydist_pms fitt NSUB f_diff FCsim FCemp;
 
-save('fcd_result_56HC_woCC.mat', 'phfcd_sim', '-v7.3');
+save('../results/hopf_model/HopfModel_results_K_.mat', '-v7.3');
 
-save HopfModel_results_56HC_woCC.mat
+elapsed_time = toc;
+toc

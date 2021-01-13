@@ -1,18 +1,54 @@
-% Script to create a .txt with the subject, area and group having a
-% BOLD timecourse at zero. 
-% Written on March 2020
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Script to create a .txt with the subject, area and group having a BOLD
+% timecourse at zero 
+%
+% Written by
+% Ludovica Romanin - march 2020
+% 
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-clear all;
+clear all; clc;
 
 %load data matrices for the two groups
-%load AgCC_TCS_new.mat
+
+% Desikan - 80
+%load AgCC_TCS.mat
 %load Controls_TCS.mat
 
-% Schaefer-800
-load AgCC_TCS_800.mat
-load Controls_TCS_800.mat
+% Schaefer - 800
+% load AgCC_TCS_800.mat
+% load Controls_TCS_800.mat
 
-%parameters
+% Brainnetome - 246BN
+%load AgCC_TCS_246BN.mat
+%load Controls_TCS_246BN.mat
+
+% Load Control data 
+disp('Load Control data')
+[file,path] = uigetfile(['../data/TCS/Controls_TCS','*.mat']);
+if isequal(file,0)
+   disp('User selected Cancel');
+else
+   disp(['User selected ', fullfile(path,file)]);
+end
+ 
+load(['../data/TCS/',file]);
+
+% Load AgCC data 
+disp('Load AgCC data')
+[file,path] = uigetfile(['../data/TCS/AgCC_TCS','*.mat']);
+if isequal(file,0)
+   disp('User selected Cancel');
+else
+   disp(['User selected ', fullfile(path,file)]);
+end
+ 
+load(['../data/TCS/',file]);
+
+%% parameters
+
 N_areas=size(Controls_TCS,1); % this is the number of brain regions / parcellations
 TP=size(Controls_TCS,2); % volumes of the fMRIs
 NSUB_Controls=size(Controls_TCS,3);
@@ -23,6 +59,7 @@ All_Subjs_TCS(:,:,1:NSUB_AgCC)=AgCC_TCS;%from 1 to 13
 All_Subjs_TCS(:,:,NSUB_AgCC+1:NSUB_AgCC+NSUB_Controls)=Controls_TCS;%from 14 to 41
 NSUB=size(All_Subjs_TCS,3);
 
+%% 
 % counter to have a different field for each subject-area pair
 nb = 1;
 
@@ -77,6 +114,6 @@ areas_zero = unique(areas_zero.','rows').';
 labels(areas_zero) = [];
 
 % save the structure in a .txt file
-writetable(struct2table(timeZero), 'timecourses_zero_800.txt')
-save areas_zero_800.mat areas_zero labels
+writetable(struct2table(timeZero), '../data/TCS/timecourses_zero_.txt')
+save ../data/TCS/areas_zero_.mat areas_zero labels
 
