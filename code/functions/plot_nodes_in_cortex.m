@@ -5,7 +5,7 @@ hold on
 
 % % PLOT CORTEX
 % 
-cortex.path='./MNI152_T1_2mm_brain_mask.nii';
+cortex.path='../../data/MNI152_T1_2mm_brain_mask.nii';
 cortex.pial=mapPial2(cortex.path);
 cortex.color=[0.9 0.9 0.9];
 cortex.transparency=0.1; % To view only opaque cortex =1;
@@ -25,7 +25,7 @@ V=round(V*10)/10;  % round small values close to zero
 % center origin
 ori=[65 45.5 35];
 
-load aal_cog.txt aal_cog
+load ../../data/atlas/aal_cog.txt aal_cog
 
 scale=5.5;
 MNI_coord=scale*(aal_cog/10);
