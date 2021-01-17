@@ -5,7 +5,7 @@ hold on
 
 % % PLOT CORTEX
 % 
-cortex.path='../../data/MNI152_T1_2mm_brain_mask.nii';
+cortex.path='../../data/atlas/MNI152_T1_2mm_brain_mask.nii';
 cortex.pial=mapPial2(cortex.path);
 cortex.color=[0.9 0.9 0.9];
 cortex.transparency=0.1; % To view only opaque cortex =1;
