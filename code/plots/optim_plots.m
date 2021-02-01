@@ -26,6 +26,8 @@ end
  
 load(['../../results/hopf_model/',file]);
 
+addpath('../functions')
+
 %% discriminate between the case of a single or multiple subjects simulation
 % enter 0 if only one subject was simulated 
 % enter 1 for multiple subjects 
@@ -218,3 +220,4 @@ for c=1:K
     box off
 end
 
+clear sig_meas_unc_ctrl sig_meas_corr_ctrl sig_meas_unc_agcc sig_meas_corr_agcc

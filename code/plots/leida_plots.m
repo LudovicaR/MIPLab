@@ -23,6 +23,8 @@ end
  
 load(['../../results/leida/',file]);
 
+addpath('../functions')
+
 %% For plots, put areas removed back to zero
 
 % load file containing the index of regions with timecourses at zero
@@ -72,10 +74,13 @@ idx_complete = [3,4,5,6,7,8,9,13];
 LTemp_partial=squeeze(LT1emp(idx_partial,:));
 LTemp_complete=squeeze(LT1emp(idx_complete,:));
 
-[sig_meas_unc_agcc_p,sig_meas_corr_agcc_p]=permutation_test([Pemp_partial',Pemp_complete']',numel(idx_partial),0.05,999,'mean','1');
-[sig_meas_unc_agcc_lt,sig_meas_corr_agcc_lt]=permutation_test([LTemp_partial',LTemp_complete']',numel(idx_partial),0.05,999,'mean','1');
-
 %% complete vs. partial AgCC
+
+[sig_unc_agcc_higher_p,sig_corr_agcc_higher_p]=permutation_test([Pemp_partial',Pemp_complete']',numel(idx_partial),0.05,19,'mean','1');
+[sig_unc_agcc_higher_lt,sig_corr_agcc_higher_lt]=permutation_test([LTemp_partial',LTemp_complete']',numel(idx_partial),0.05,19,'mean','1');
+
+[sig_unc_agcc_lower_p,sig_corr_agcc_lower_p]=permutation_test([Pemp_partial',Pemp_complete']',numel(idx_partial),0.05,19,'mean','2');
+[sig_unc_agcc_lower_lt,sig_corr_agcc_lower_lt]=permutation_test([LTemp_partial',LTemp_complete']',numel(idx_partial),0.05,19,'mean','2');
 
 for c=1:K
     subplot(2,K,c)
@@ -88,8 +93,17 @@ for c=1:K
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'pAgCC', 'cAgCC'},'FontSize', 12)
     xtickangle(-60)
-    if sig_meas_unc_agcc_p(c) == 1
+    if sig_unc_agcc_higher_p(c) == 1
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
+    end
+    if sig_corr_agcc_higher_p(c)==1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
+    end
+    if sig_unc_agcc_lower_p(c) == 1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
+    end
+    if sig_corr_agcc_lower_p(c)==1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
     end
     if c==1
         ylabel('Probability','FontSize', 12)
@@ -104,8 +118,17 @@ for c=1:K
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'pAgCC', 'cAgCC'},'FontSize', 12)
     xtickangle(-60)
-    if sig_meas_unc_agcc_lt(c) == 1
+    if sig_unc_agcc_higher_lt(c) == 1
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
+    end
+    if sig_corr_agcc_higher_lt(c)==1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
+    end
+    if sig_unc_agcc_lower_lt(c) == 1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
+    end
+    if sig_corr_agcc_lower_lt(c)==1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
     end
     if c==1
         ylabel('Lifetime (seconds)','FontSize', 12)
@@ -120,11 +143,17 @@ width=1500;
 height=400;
 set(gcf,'position',[x0,y0,width,height])
 
+clear sig_unc_agcc_higher_p sig_corr_agcc_higher_p sig_unc_agcc_higher_lt sig_corr_agcc_higher_lt;
+clear sig_unc_agcc_lower_p sig_corr_agcc_lower_p sig_unc_agcc_lower_lt sig_corr_agcc_lower_lt;
 
 %% test significance of AgCC vs. Control 
 
-[sig_meas_unc_p,sig_meas_corr_p]=permutation_test([P1emp', P2emp']',numel(P1emp(:,1)),0.05,999,'mean','1');
-[sig_meas_unc_lt,sig_meas_corr_lt]=permutation_test([LT1emp', LT2emp']',numel(LT1emp(:,1)),0.05,999,'mean','1');
+[sig_unc_agcc_higher_p,sig_corr_agcc_higher_p]=permutation_test([P1emp', P2emp']',numel(P1emp(:,1)),0.05,19,'mean','1');
+[sig_unc_agcc_higher_lt,sig_corr_agcc_higher_lt]=permutation_test([LT1emp', LT2emp']',numel(LT1emp(:,1)),0.05,19,'mean','1');
+
+[sig_unc_agcc_lower_p,sig_corr_agcc_lower_p]=permutation_test([P1emp', P2emp']',numel(P1emp(:,1)),0.05,19,'mean','2');
+[sig_unc_agcc_lower_lt,sig_corr_agcc_lower_lt]=permutation_test([LT1emp', LT2emp']',numel(LT1emp(:,1)),0.05,19,'mean','2');
+
 
 for c=1:K
     subplot(2,K,c)
@@ -137,10 +166,16 @@ for c=1:K
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'AgCC', 'Ctrl'},'FontSize', 12)
     xtickangle(-60)
-    if sig_meas_unc_p(c) == 1
+    if sig_unc_agcc_higher_p(c) == 1
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
-    if sig_meas_corr_p(c)==1
+    if sig_corr_agcc_higher_p(c)==1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
+    end
+    if sig_unc_agcc_lower_p(c) == 1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
+    end
+    if sig_corr_agcc_lower_p(c)==1
         plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
     end
     if c==1
@@ -156,10 +191,16 @@ for c=1:K
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'AgCC', 'Ctrl'},'FontSize', 12)
     xtickangle(-60)
-    if sig_meas_unc_lt(c) == 1
+    if sig_unc_agcc_higher_lt(c) == 1
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
-    if sig_meas_corr_lt(c) == 1
+    if sig_corr_agcc_higher_lt(c)==1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
+    end
+    if sig_unc_agcc_lower_lt(c) == 1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
+    end
+    if sig_corr_agcc_lower_lt(c)==1
         plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
     end
     if c==1
@@ -175,9 +216,18 @@ width=1500;
 height=400;
 set(gcf,'position',[x0,y0,width,height])
 
+clear sig_unc_agcc_higher_p sig_corr_agcc_higher_p sig_unc_agcc_higher_lt sig_corr_agcc_higher_lt;
+clear sig_unc_agcc_lower_p sig_corr_agcc_lower_p sig_unc_agcc_lower_lt sig_corr_agcc_lower_lt;
+
+
 %% test significance of AgCC complete vs. Control
-[sig_meas_unc_p,sig_meas_corr_p]=permutation_test([Pemp_complete', P2emp']',numel(Pemp_complete(:,1)),0.05,999,'mean','1');
-[sig_meas_unc_lt,sig_meas_corr_lt]=permutation_test([LTemp_complete', LT2emp']',numel(LTemp_complete(:,1)),0.05,999,'mean','1');
+
+[sig_unc_agcc_higher_p,sig_corr_agcc_higher_p]=permutation_test([Pemp_complete', P2emp']',numel(Pemp_complete(:,1)),0.05,999,'mean','1');
+[sig_unc_agcc_higher_lt,sig_corr_agcc_higher_lt]=permutation_test([LTemp_complete', LT2emp']',numel(LTemp_complete(:,1)),0.05,999,'mean','1');
+
+[sig_unc_agcc_lower_p,sig_corr_agcc_lower_p]=permutation_test([Pemp_complete', P2emp']',numel(Pemp_complete(:,1)),0.05,999,'mean','2');
+[sig_unc_agcc_lower_lt,sig_corr_agcc_lower_lt]=permutation_test([LTemp_complete', LT2emp']',numel(LTemp_complete(:,1)),0.05,999,'mean','2');
+
 
 for c=1:K
     subplot(2,K,c)
@@ -190,10 +240,16 @@ for c=1:K
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'cAgCC', 'Ctrl'},'FontSize', 12)
     xtickangle(-60)
-    if sig_meas_unc_p(c) == 1
+    if sig_unc_agcc_higher_p(c) == 1
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
-    if sig_meas_corr_p(c) == 1
+    if sig_corr_agcc_higher_p(c)==1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
+    end
+    if sig_unc_agcc_lower_p(c) == 1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
+    end
+    if sig_corr_agcc_lower_p(c)==1
         plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
     end
     if c==1
@@ -209,10 +265,16 @@ for c=1:K
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'cAgCC', 'Ctrl'},'FontSize', 12)
     xtickangle(-60)
-    if sig_meas_unc_lt(c) == 1
+    if sig_unc_agcc_higher_lt(c) == 1
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
-    if sig_meas_corr_lt(c) == 1
+    if sig_corr_agcc_higher_lt(c)==1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
+    end
+    if sig_unc_agcc_lower_lt(c) == 1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
+    end
+    if sig_corr_agcc_lower_lt(c)==1
         plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
     end
     if c==1
@@ -228,9 +290,16 @@ width=1500;
 height=400;
 set(gcf,'position',[x0,y0,width,height])
 
+clear sig_unc_agcc_higher_p sig_corr_agcc_higher_p sig_unc_agcc_higher_lt sig_corr_agcc_higher_lt;
+clear sig_unc_agcc_lower_p sig_corr_agcc_lower_p sig_unc_agcc_lower_lt sig_corr_agcc_lower_lt;
+
 %% test significance of AgCC partial vs. Control
-[sig_meas_unc_p,sig_meas_corr_p]=permutation_test([Pemp_partial', P2emp']',numel(Pemp_partial(:,1)),0.05,999,'mean','1');
-[sig_meas_unc_lt,sig_meas_corr_lt]=permutation_test([LTemp_partial', LT2emp']',numel(LTemp_partial(:,1)),0.05,999,'mean','1');
+
+[sig_unc_agcc_higher_p,sig_corr_agcc_higher_p]=permutation_test([Pemp_partial', P2emp']',numel(Pemp_partial(:,1)),0.05,999,'mean','1');
+[sig_unc_agcc_higher_lt,sig_corr_agcc_higher_lt]=permutation_test([LTemp_partial', LT2emp']',numel(LTemp_partial(:,1)),0.05,999,'mean','1');
+
+[sig_unc_agcc_lower_p,sig_corr_agcc_lower_p]=permutation_test([Pemp_partial', P2emp']',numel(Pemp_partial(:,1)),0.05,999,'mean','2');
+[sig_unc_agcc_lower_lt,sig_corr_agcc_lower_lt]=permutation_test([LTemp_partial', LT2emp']',numel(LTemp_partial(:,1)),0.05,999,'mean','2');
 
 for c=1:K
     subplot(2,K,c)
@@ -243,10 +312,16 @@ for c=1:K
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'pAgCC', 'Ctrl'},'FontSize', 12)
     xtickangle(-60)
-    if sig_meas_unc_p(c) == 1
+    if sig_unc_agcc_higher_p(c) == 1
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
-    if sig_meas_corr_p(c) == 1
+    if sig_corr_agcc_higher_p(c)==1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
+    end
+    if sig_unc_agcc_lower_p(c) == 1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
+    end
+    if sig_corr_agcc_lower_p(c)==1
         plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
     end
     if c==1
@@ -262,10 +337,16 @@ for c=1:K
     errorbar([mean(Group1) mean(Group2)],[std(Group1)/sqrt(numel(Group1)) std(Group2)/sqrt(numel(Group2))],'LineStyle','none','Color','k')
     set(gca,'XTickLabel',{'pAgCC', 'Ctrl'},'FontSize', 12)
     xtickangle(-60)
-    if sig_meas_unc_lt(c) == 1
+    if sig_unc_agcc_higher_lt(c) == 1
         plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
     end
-    if sig_meas_corr_lt(c) == 1
+    if sig_corr_agcc_higher_lt(c)==1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
+    end
+    if sig_unc_agcc_lower_lt(c) == 1
+        plot(1.5,max([mean(Group1) mean(Group2)])+.01,'*k')
+    end
+    if sig_corr_agcc_lower_lt(c)==1
         plot(1.5,max([mean(Group1) mean(Group2)])+.02,'*r')
     end
     if c==1
@@ -280,6 +361,10 @@ y0=10;
 width=1500;
 height=400;
 set(gcf,'position',[x0,y0,width,height])
+
+
+clear sig_unc_agcc_higher_p sig_corr_agcc_higher_p sig_unc_agcc_higher_lt sig_corr_agcc_higher_lt;
+clear sig_unc_agcc_lower_p sig_corr_agcc_lower_p sig_unc_agcc_lower_lt sig_corr_agcc_lower_lt;
 
 %% functional connectivity matrices for each states
 for c=1:K
